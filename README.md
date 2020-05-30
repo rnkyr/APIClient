@@ -1,6 +1,6 @@
 # APIClient
 
-![cocoapods](https://img.shields.io/badge/pod-3.0-blue) ![swift](https://img.shields.io/badge/Swift-5.0-orange.svg) ![Platform](http://img.shields.io/badge/platform-iOS-blue.svg?style=flat) [![License](http://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/Yalantis/APIClient/blob/master/LICENSE)
+![APIClient Tests](https://github.com/rnkyr/APIClient/workflows/APIClient%20Tests/badge.svg?branch=master)![cocoapods](https://img.shields.io/badge/pod-3.0-blue) ![swift](https://img.shields.io/badge/Swift-5.0-orange.svg) ![Platform](http://img.shields.io/badge/platform-iOS-blue.svg?style=flat) [![License](http://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/Yalantis/APIClient/blob/master/LICENSE)
 
 ## Integration (Cocoapods)
 
