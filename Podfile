@@ -1,0 +1,15 @@
+use_frameworks!
+
+platform :ios, '11.0'
+
+target 'Example' do
+    
+    pod 'APIClient', :path => '.'
+    pod 'SwiftLint'
+end
+
+target 'ExampleTests' do
+    
+    pod 'APIClient', :path => '.'
+    pod 'Mockingjay', '3.0.0-alpha.1'
+end
