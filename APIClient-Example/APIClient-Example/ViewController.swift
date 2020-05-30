@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import YALAPIClient
+import APIClient
 
 class ViewController: UIViewController {
     
@@ -24,13 +24,16 @@ class ViewController: UIViewController {
     
     @IBAction private func findCurrentIP() {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        
-        ipServiceNetworkClient.execute(request: IPAddressRequest(), parser: DecodableParser<IPAddress>()) { [weak self] response in
+        ipServiceNetworkClient.execute(
+            request: IPAddressRequest(),
+            parser: DecodableParser<IPAddress>()
+        ) { [weak self] response in
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
             
             switch response {
             case .success(let result):
                 self?.display(ipAddress: result)
+                
             case .failure(let error):
                 self?.display(error: error)
             }
@@ -38,12 +41,16 @@ class ViewController: UIViewController {
     }
 
     @IBAction private func findData() {
-        geoServiceNetworkClient.execute(request: IPAddressDataRequest(ipAddress: ipAddressTextField.text ?? ""), parser: DecodableParser<LocationMetaData>()) { [weak self] response in
+        geoServiceNetworkClient.execute(
+            request: IPAddressDataRequest(ipAddress: ipAddressTextField.text ?? ""),
+            parser: DecodableParser<LocationMetaData>(
+        )) { [weak self] response in
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
             
             switch response {
             case .success(let result):
                 self?.display(data: result)
+                
             case .failure(let error):
                 self?.display(error: error)
             }

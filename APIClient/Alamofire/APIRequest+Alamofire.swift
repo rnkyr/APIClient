@@ -3,16 +3,22 @@ import Alamofire
 
 public extension APIRequest {
 
-    var alamofireMethod: HTTPMethod {
-        return HTTPMethod(rawValue: method.rawValue.uppercased()) ?? .get
-    }
-
-    var alamofireEncoding: ParameterEncoding {
-        return encoding as? ParameterEncoding ?? URLEncoding.default
+    var afMethod: HTTPMethod {
+        return HTTPMethod(rawValue: method.rawValue.uppercased())
     }
     
-}
+    var afHeaders: HTTPHeaders? {
+        guard let headers = headers else {
+            return nil
+        }
+        
+        return HTTPHeaders(headers)
+    }
 
-extension URLEncoding: APIRequestEncoding {}
-extension PropertyListEncoding: APIRequestEncoding {}
-extension JSONEncoding: APIRequestEncoding {}
+    var afEncoding: ParameterEncoding {
+        switch encoding {
+        case .json: return Alamofire.JSONEncoding.default
+        case .url: return Alamofire.URLEncoding.default
+        }
+    }
+}

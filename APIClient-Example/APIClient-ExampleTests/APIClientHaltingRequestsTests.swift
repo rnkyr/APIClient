@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import YALAPIClient
+import APIClient
 import Mockingjay
 
 final class APIClientHaltingRequestsTests: XCTestCase {
@@ -25,7 +25,7 @@ final class APIClientHaltingRequestsTests: XCTestCase {
         let restorationQueue = DispatchQueue(label: "restoration queue")
         
         var attemptsToRestore = 0
-        decorationPlugin.restorationResultProvider = { (completion: @escaping (Result<TokenType>) -> Void) -> Void in
+        decorationPlugin.restorationResultProvider = { (completion: @escaping (Result<TokenType, NetworkClientError>) -> Void) -> Void in
             restorationQueue.async {
                 sleep(2)
                 attemptsToRestore += 1
@@ -74,30 +74,45 @@ final class APIClientHaltingRequestsTests: XCTestCase {
         stub(everything, failure(NSError(domain: "", code: 401, userInfo: nil)))
         executionQueue.async {
             sut.execute(request: GetAuthorizedUserRequest(), parser: DecodableParser<User>(keyPath: "user")) { result in
-                XCTAssertNotNil(result.error as? NetworkError)
+                XCTAssertNotNil(result.error)
                 
-                switch result.error as! NetworkError {
-                case .unauthorized: break
-                default: XCTFail("unexpected error: \(result.error as! NetworkError)")
+                let error: NetworkClientError = result.error!
+                switch error {
+                case .network(let error):
+                    switch error {
+                    case .unauthorized: break
+                    default: XCTFail("unexpected error: \(error)")
+                    }
+                default: XCTFail("unexpected error: \(error)")
                 }
                 firstRequestExpectation.fulfill()
             }
             sleep(1)
             sut.execute(request: GetAuthorizedUserRequest(), parser: DecodableParser<User>(keyPath: "user")) { result in
-                XCTAssertNotNil(result.error as? NetworkError)
+                XCTAssertNotNil(result.error)
                 
-                switch result.error as! NetworkError {
-                case .canceled: break
-                default: XCTFail("unexpected error: \(result.error as! NetworkError)")
+                let error: NetworkClientError = result.error!
+                switch error {
+                case .network(let error):
+                    switch error {
+                    case .canceled: break
+                    default: XCTFail("unexpected error: \(error)")
+                    }
+                default: XCTFail("unexpected error: \(error)")
                 }
                 secondRequestExpectation.fulfill()
             }
             sut.execute(request: GetAuthorizedUserRequest(), parser: DecodableParser<User>(keyPath: "user")) { result in
-                XCTAssertNotNil(result.error as? NetworkError)
+                XCTAssertNotNil(result.error)
                 
-                switch result.error as! NetworkError {
-                case .canceled: break
-                default: XCTFail("unexpected error: \(result.error as! NetworkError)")
+                let error: NetworkClientError = result.error!
+                switch error {
+                case .network(let error):
+                    switch error {
+                    case .canceled: break
+                    default: XCTFail("unexpected error: \(error)")
+                    }
+                default: XCTFail("unexpected error: \(error)")
                 }
                 thirdRequestExpectation.fulfill()
             }
@@ -112,4 +127,21 @@ struct GetAuthorizedUser2Request: APIRequest, AuthorizableRequest {
     
     let method: APIRequestMethod = .get
     let path = Constants.user2
+}
+
+extension Result {
+    
+    var value: Success? {
+        switch self {
+        case .success(let result): return result
+        case .failure: return nil
+        }
+    }
+    
+    var error: Failure? {
+        switch self {
+        case .success: return nil
+        case .failure(let error): return error
+        }
+    }
 }

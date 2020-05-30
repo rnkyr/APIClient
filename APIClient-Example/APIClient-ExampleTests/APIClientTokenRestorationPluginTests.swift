@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import YALAPIClient
+import APIClient
 import Mockingjay
 
 class APIClientTokenRestorationPluginTests: XCTestCase {
@@ -50,7 +50,7 @@ class APIClientTokenRestorationPluginTests: XCTestCase {
             plugins: [decorationPlugin]
         )
         
-        decorationPlugin.restorationResultProvider = { (completion: @escaping (Result<TokenType>) -> Void) -> Void in
+        decorationPlugin.restorationResultProvider = { (completion: @escaping (Result<TokenType, NetworkClientError>) -> Void) -> Void in
             self.stubSuccessfulAuth()
             
             let restoreRequest = RestoreRequest()

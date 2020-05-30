@@ -35,15 +35,14 @@ public final class DecodableParser<T: Decodable>: KeyPathParser, ResponseParser 
         super.init(keyPath: keyPath)
     }
     
-    public func parse(_ object: AnyObject) -> Result<T> {
+    public func parse(_ object: AnyObject) -> Result<T, NetworkClientError.SerializationError> {
         do {
             let value = try valueForKeyPath(in: object)
             let data = try JSONSerialization.data(withJSONObject: value)
             let decoded = try decoder.decode(T.self, from: data)
             return .success(decoded)
         } catch let error {
-            return .failure(error)
+            return .failure(NetworkClientError.SerializationError.parsing(error))
         }
     }
-    
 }

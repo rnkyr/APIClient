@@ -9,15 +9,15 @@ import Foundation
 
 public protocol TokenType {
     
-    var accessToken: String { get set }
-    var exchangeToken: String { get set }
+    var accessToken: String { get }
+    var exchangeToken: String { get }
 }
 
 /// The plugin to restore the token can be used as the requestor's credential provider
 public class RestorationTokenPlugin: PluginType {
     
     /// callback that provides result of request made to restore the session; captured
-    public var restorationResultProvider: ((@escaping (Result<TokenType>) -> Void) -> Void)?
+    public var restorationResultProvider: ((@escaping (Response<TokenType>) -> Void) -> Void)?
     
     let shouldHaltRequestsTillResolve: Bool
     weak var delegate: RestorationTokenPluginDelegate?
@@ -31,11 +31,16 @@ public class RestorationTokenPlugin: PluginType {
     ///   - shouldHaltRequestsTillResolve: indicates whether APIClient should halt all passing requests in case one of them failed with `unathorized` error and restart them
     ///                                    works only with `AuthorizableRequest`s
     ///   - authErrorResolving: an optional callback that allows you to determine whether a given error is `unauthorized` one
-    public init(credentialProvider: AccessCredentialsProvider, shouldHaltRequestsTillResolve: Bool = true, authErrorResolving: AuthErrorResolving? = nil) {
+    public init(
+        credentialProvider: AccessCredentialsProvider,
+        shouldHaltRequestsTillResolve: Bool = true,
+        authErrorResolving: AuthErrorResolving? = nil
+    ) {
         self.credentialProvider = credentialProvider
         self.shouldHaltRequestsTillResolve = shouldHaltRequestsTillResolve
         self.authErrorResolving = authErrorResolving ?? { error in
-            if let error = error as? NetworkError, case .unauthorized = error {
+            if let error = (error as? NetworkClientError)?.underlyingError as? NetworkClientError.NetworkError,
+                case .unauthorized = error {
                 return true
             }
             

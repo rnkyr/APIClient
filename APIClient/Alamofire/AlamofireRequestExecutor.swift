@@ -3,35 +3,39 @@ import Alamofire
 
 open class AlamofireRequestExecutor: RequestExecutor {
     
-    private let manager: SessionManager
     private let baseURL: URL
     
-    public init(baseURL: URL, manager: SessionManager = SessionManager.default) {
-        self.manager = manager
+    public init(baseURL: URL) {
         self.baseURL = baseURL
     }
     
     public func execute(request: APIRequest, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: request)
-        let request = manager
-            .request(
-                requestPath,
-                method: request.alamofireMethod,
-                parameters: request.parameters,
-                encoding: request.alamofireEncoding,
-                headers: request.headers    
-            )
-            .response { response in
-                guard let httpResponse = response.response, let data = response.data else {
-                    AlamofireRequestExecutor.defineError(response.error, completion: completion)
-                    return
-                }
-                completion(.success((httpResponse, data)))
-        }
-        
+        let request = AF.request(
+            requestPath,
+            method: request.afMethod,
+            parameters: request.parameters,
+            encoding: request.afEncoding,
+            headers: request.afHeaders
+        )
         cancellationSource.token.register {
             request.cancel()
+        }
+        
+        request.response { (response: DataResponse<Data?, AFError>) in
+            if let httpResponse = response.response, let data = response.data {
+                completion(Result.success((httpResponse, data)))
+                
+                return
+            }
+            
+            completion(Result.failure(
+                AlamofireRequestExecutor.defineError(
+                    responseError: response.error,
+                    responseStatusCode: response.response?.statusCode
+                )
+            ))
         }
         
         return cancellationSource
@@ -41,37 +45,35 @@ open class AlamofireRequestExecutor: RequestExecutor {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: multipartRequest)
         
-        manager
-            .upload(
-                multipartFormData: multipartRequest.multipartFormData,
-                to: requestPath,
-                method: multipartRequest.alamofireMethod,
-                headers: multipartRequest.headers,
-                encodingCompletion: { encodingResult in
-                    switch encodingResult {
-                    case .success(var request, _, _):
-                        cancellationSource.token.register {
-                            request.cancel()
-                        }
-                        
-                        if let progressHandler = multipartRequest.progressHandler {
-                            request = request.uploadProgress { progress in
-                                progressHandler(progress)
-                            }
-                        }
-                        request.responseJSON(completionHandler: { response in
-                            guard let httpResponse = response.response, let data = response.data else {
-                                AlamofireRequestExecutor.defineError(response.error, completion: completion)
-                                return
-                            }
-                            
-                            completion(.success((httpResponse, data)))
-                        })
-                        
-                    case .failure(let error):
-                        completion(.failure(error))
-                    }
-            })
+        let request = AF.upload(
+            multipartFormData: multipartRequest.multipartFormData,
+            to: requestPath,
+            method: multipartRequest.afMethod,
+            headers: multipartRequest.afHeaders
+        )
+        cancellationSource.token.register {
+            request.cancel()
+        }
+        if let progressHandler = multipartRequest.progressHandler {
+            request.uploadProgress { (progress: Progress) in
+                progressHandler(progress)
+            }
+        }
+        
+        request.responseJSON { (response: DataResponse<Any, AFError>) in
+            if let httpResponse = response.response, let data = response.data {
+                completion(Result.success((httpResponse, data)))
+                
+                return
+            }
+            
+            completion(Result.failure(
+                AlamofireRequestExecutor.defineError(
+                    responseError: response.error,
+                    responseStatusCode: response.response?.statusCode
+                )
+            ))
+        }
         
         return cancellationSource
     }
@@ -80,32 +82,36 @@ open class AlamofireRequestExecutor: RequestExecutor {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: downloadRequest)
         
-        var request = manager.download(
+        let request = AF.download(
             requestPath,
-            method: downloadRequest.alamofireMethod,
+            method: downloadRequest.afMethod,
             parameters: downloadRequest.parameters,
-            encoding: downloadRequest.alamofireEncoding,
-            headers: downloadRequest.headers,
+            encoding: downloadRequest.afEncoding,
+            headers: downloadRequest.afHeaders,
             to: destination(for: destinationPath)
         )
-        
+        cancellationSource.token.register {
+            request.cancel()
+        }
         if let progressHandler = downloadRequest.progressHandler {
-            request = request.downloadProgress { progress in
+            request.downloadProgress { (progress: Progress) in
                 progressHandler(progress)
             }
         }
         
-        request.responseData { response in
-            guard let httpResponse = response.response, let data = response.result.value else {
-                AlamofireRequestExecutor.defineError(response.error, completion: completion)
+        request.responseData { (response: DownloadResponse<Data, AFError>) in
+            if let httpResponse = response.response, let data = response.result.value {
+                completion(Result.success((httpResponse, data)))
+                
                 return
             }
             
-            completion(.success((httpResponse, data)))
-        }
-        
-        cancellationSource.token.register {
-            request.cancel()
+            completion(Result.failure(
+                AlamofireRequestExecutor.defineError(
+                    responseError: response.error,
+                    responseStatusCode: response.response?.statusCode
+                )
+            ))
         }
         
         return cancellationSource
@@ -118,33 +124,69 @@ open class AlamofireRequestExecutor: RequestExecutor {
             .removingPercentEncoding!
     }
     
-    private func destination(for url: URL?) -> DownloadRequest.DownloadFileDestination? {
+    private func destination(for url: URL?) -> DownloadRequest.Destination? {
         guard let url = url else {
             return nil
         }
-        let destination: DownloadRequest.DownloadFileDestination = { _, _ in
+        
+        let destination: DownloadRequest.Destination = { _, _ -> (URL, DownloadRequest.Options) in
             return (url, [.removePreviousFile, .createIntermediateDirectories])
         }
         
         return destination
     }
     
-    private class func defineError(_ error: Error?, completion: @escaping APIResultResponse) {
-        guard let error = error else {
-            completion(.failure(NetworkError.undefined))
-            return
+    private static func defineError(responseError: AFError?, responseStatusCode: Int?) -> NetworkClientError {
+        guard let error = responseError else {
+            if let code = responseStatusCode, let definedError = NetworkClientError.define(code) {
+                return definedError
+            }
+            
+            return NetworkClientError.undefined(responseError)
         }
         
-        switch (error as NSError).code {
-        case NSURLErrorCancelled:
-            completion(.failure(NetworkError.canceled))
-        case NSURLErrorNotConnectedToInternet, NSURLErrorTimedOut:
-            completion(.failure(NetworkError.connection))
-        default:
-            completion(.failure(error))
+        if let definedError = NetworkClientError.define(error) {
+           return definedError
         }
+        
+        return NetworkClientError.map(error)
     }
-    
 }
 
-extension Alamofire.MultipartFormData: MultipartFormDataType {}
+extension NetworkClientError {
+    
+    static func map(_ error: AFError) -> NetworkClientError {
+        if let code = error.responseCode, let definedError = NetworkClientError.define(code) {
+            return definedError
+        }
+        
+        if let underlyingError = error.underlyingError, let definedError = NetworkClientError.define(underlyingError) {
+            return definedError
+        }
+        
+        switch error {
+        case .explicitlyCancelled: return NetworkClientError.network(.canceled)
+        case .responseSerializationFailed: return NetworkClientError.serialization(.parsing(error))
+        case .responseValidationFailed(let reason):
+            switch reason {
+            case .unacceptableStatusCode(let code):
+                if let definedError = NetworkClientError.define(code) {
+                    return definedError
+                }
+            default: break
+            }
+            
+        default: break
+        }
+        
+        return NetworkClientError.executor(error)
+    }
+}
+
+extension Alamofire.MultipartFormData: MultipartFormDataType {
+    
+    public func append(_ stream: InputStream, withLength length: UInt64, headers: [String : String]) {
+        let httpHeaders = HTTPHeaders(headers)
+        append(stream, withLength: length, headers: httpHeaders)
+    }
+}
