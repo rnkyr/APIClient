@@ -21,6 +21,9 @@ jobs:
     steps:
     - name: Cruise to a project dir
       run: cd Example
+      
+    - name: pwd
+      run: pwd
         
     - name: Bundle install
       run: bundle install --path=./vendor
