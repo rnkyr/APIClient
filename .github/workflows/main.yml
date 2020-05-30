@@ -21,8 +21,9 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: sersoft-gmbh/xcodebuild-action@v1
-      
-    - name: Test
-      run: |
-        xcodebuild test -project /APIClient-Example/APIClient-Example.xcodeproj -scheme APIClient-ExampleTests -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 6,OS=12.2"
+      with:
+        project: /APIClient-Example/APIClient-Example.xcodeproj
+        scheme: APIClient-Example
+        destination: platform=macOS
+        action: test
 
