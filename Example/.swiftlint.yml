@@ -20,11 +20,9 @@ opt_in_rules: # some rules are only opt-in
 
 excluded: # paths to ignore during linting. Takes precedence over `included`.
   - Carthage
-  - Pods/Alamofire
-  - Pods/Mockingjay
-  - Pods/URITemplate
-  - vendor/bundle
-  - APIClient-ExampleTests
+  - Pods
+  - vendor
+  - ExampleTests
 
 comma: error
 force_cast: warning 

@@ -22,7 +22,7 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: sersoft-gmbh/xcodebuild-action@v1
       with:
-        workspace: Example.xcworkspace
+        workspace: ./Example/Example.xcworkspace
         scheme: Example
         sdk: iphonesimulator
         destination: platform=iOS Simulator

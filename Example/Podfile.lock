@@ -17,7 +17,7 @@ PODS:
   - URITemplate (3.0.0)
 
 DEPENDENCIES:
-  - APIClient (from `.`)
+  - APIClient (from `../`)
   - Mockingjay (= 3.0.0-alpha.1)
   - SwiftLint
 
@@ -30,7 +30,7 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   APIClient:
-    :path: "."
+    :path: "../"
 
 SPEC CHECKSUMS:
   Alamofire: e911732990610fe89af59ac0077f923d72dc3dfd
@@ -39,6 +39,6 @@ SPEC CHECKSUMS:
   SwiftLint: 22ccbbe3b8008684be5955693bab135e0ed6a447
   URITemplate: 58e0d47f967006c5d59888af5356c4a8ed3b197d
 
-PODFILE CHECKSUM: d1ebd84839203839d493f10bfdcd36decf5edfca
+PODFILE CHECKSUM: 4ec0799fa59649f8119174e7f06ccabfe5eb3209
 
 COCOAPODS: 1.9.3
