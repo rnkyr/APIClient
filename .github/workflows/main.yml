@@ -22,8 +22,8 @@ jobs:
       
     - name: pwd
       run: pwd
-    - name: ls
-      run: ls
+    - name: cd
+      run: cd ..
       
     - name: Cruise to a project dir
       run: cd Example
