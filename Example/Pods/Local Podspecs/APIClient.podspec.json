@@ -1,0 +1,42 @@
+{
+  "name": "APIClient",
+  "version": "3.0",
+  "summary": "Extensible network client.",
+  "homepage": "https://github.com/rnkyr/APIClient.git",
+  "license": {
+    "type": "MIT",
+    "file": "License"
+  },
+  "authors": {
+    "Eugene Andreyev": "eugene.andreyev@yalantis.com",
+    "Roman Kyrylenko": "roman.kyrylenko@yalantis.com",
+    "Anton Vodolazkyi": "anton.vodolazky@yalantis.com"
+  },
+  "source": {
+    "git": "https://github.com/Yalantis/APIClient.git",
+    "tag": "3.0"
+  },
+  "frameworks": "Foundation",
+  "platforms": {
+    "ios": "10.0"
+  },
+  "default_subspecs": "Alamofire",
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "Source/Default/**/*.swift"
+    },
+    {
+      "name": "Alamofire",
+      "dependencies": {
+        "APIClient/Core": [
+
+        ],
+        "Alamofire": [
+          "5.2.1"
+        ]
+      },
+      "source_files": "Source/Alamofire/*"
+    }
+  ]
+}
