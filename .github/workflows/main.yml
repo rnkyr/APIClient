@@ -22,7 +22,7 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: sersoft-gmbh/xcodebuild-action@v1
       with:
-        project: APIClient-Example/APIClient-Example.xcodeproj
+        project: APIClient-Example/APIClient-Example.xcworkspace
         scheme: APIClient-Example
         destination: platform=macOS
         action: test
