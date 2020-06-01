@@ -12,7 +12,7 @@ public struct EmptyParser: ResponseParser {
     public init() {}
     
     public func parse(_ object: AnyObject) -> Result<Bool, NetworkClientError.SerializationError> {
-        return .success(true)
+        return Result.success(true)
     }
 }
 
@@ -21,6 +21,6 @@ public struct JSONParser: ResponseParser {
     public init() {}
     
     public func parse(_ object: AnyObject) -> Result<[String: AnyObject], NetworkClientError.SerializationError> {
-        return .success(object as! [String: AnyObject])
+        return Result.success(object as! [String: AnyObject])
     }
 }

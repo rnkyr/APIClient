@@ -24,18 +24,21 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.response { (response: DataResponse<Data?, AFError>) in
-            if let httpResponse = response.response, let data = response.data {
-                completion(Result.success((httpResponse, data)))
-                
-                return
-            }
-            
-            completion(Result.failure(
-                AlamofireRequestExecutor.defineError(
+            if let error = response.error {
+                completion(Result.failure(
+                    AlamofireRequestExecutor.defineError(
+                        responseError: error,
+                        responseStatusCode: response.response?.statusCode
+                    )
+                ))
+            } else if let httpResponse = response.response {
+                completion(Result.success((httpResponse, response.data)))
+            } else {
+                completion(Result.failure(AlamofireRequestExecutor.defineError(
                     responseError: response.error,
                     responseStatusCode: response.response?.statusCode
-                )
-            ))
+                )))
+            }
         }
         
         return cancellationSource
@@ -61,18 +64,21 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.responseJSON { (response: DataResponse<Any, AFError>) in
-            if let httpResponse = response.response, let data = response.data {
-                completion(Result.success((httpResponse, data)))
-                
-                return
-            }
-            
-            completion(Result.failure(
-                AlamofireRequestExecutor.defineError(
+            if let error = response.error {
+                completion(Result.failure(
+                    AlamofireRequestExecutor.defineError(
+                        responseError: error,
+                        responseStatusCode: response.response?.statusCode
+                    )
+                ))
+            } else if let httpResponse = response.response {
+                completion(Result.success((httpResponse, response.data)))
+            } else {
+                completion(Result.failure(AlamofireRequestExecutor.defineError(
                     responseError: response.error,
                     responseStatusCode: response.response?.statusCode
-                )
-            ))
+                )))
+            }
         }
         
         return cancellationSource
@@ -100,18 +106,21 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.responseData { (response: DownloadResponse<Data, AFError>) in
-            if let httpResponse = response.response, let data = response.result.value {
-                completion(Result.success((httpResponse, data)))
-                
-                return
-            }
-            
-            completion(Result.failure(
-                AlamofireRequestExecutor.defineError(
+            if let error = response.error {
+                completion(Result.failure(
+                    AlamofireRequestExecutor.defineError(
+                        responseError: error,
+                        responseStatusCode: response.response?.statusCode
+                    )
+                ))
+            } else if let httpResponse = response.response {
+                completion(Result.success((httpResponse, response.result.value)))
+            } else {
+                completion(Result.failure(AlamofireRequestExecutor.defineError(
                     responseError: response.error,
                     responseStatusCode: response.response?.statusCode
-                )
-            ))
+                )))
+            }
         }
         
         return cancellationSource

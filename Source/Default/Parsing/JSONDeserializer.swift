@@ -2,7 +2,11 @@ import Foundation
 
 public class JSONDeserializer: Deserializer {
     
-    public func deserialize(_ response: HTTPURLResponse, data: Data) -> Result<AnyObject, NetworkClientError.SerializationError> {
+    public func deserialize(_ response: HTTPURLResponse, data: Data?) -> Result<AnyObject, NetworkClientError.SerializationError> {
+        guard let data = data else {
+            return Result.failure(NetworkClientError.SerializationError.noData)
+        }
+        
         do {
             let jsonObject = try JSONSerialization
                 .jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as AnyObject

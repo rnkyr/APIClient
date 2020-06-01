@@ -2,7 +2,7 @@ import Foundation
 
 open class APIClient: NSObject, NetworkClient {
     
-    public typealias HTTPResponse = (httpResponse: HTTPURLResponse, data: Data)
+    public typealias HTTPResponse = (httpResponse: HTTPURLResponse, data: Data?)
     
     private let requestExecutor: RequestExecutor
     private let deserializer: Deserializer

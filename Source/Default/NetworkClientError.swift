@@ -22,6 +22,7 @@ public enum NetworkClientError: Error {
         case encoding(Error)
         // failed to parse or deserialize response
         case parsing(Error)
+        case noData
     }
     
     case network(NetworkError)
