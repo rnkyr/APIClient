@@ -32,7 +32,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
                     )
                 ))
             } else if let httpResponse = response.response {
-                completion(Result.success((httpResponse, response.data)))
+                completion(Result.success((httpResponse, response.data ?? Data())))
             } else {
                 completion(Result.failure(AlamofireRequestExecutor.defineError(
                     responseError: response.error,
@@ -72,7 +72,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
                     )
                 ))
             } else if let httpResponse = response.response {
-                completion(Result.success((httpResponse, response.data)))
+                completion(Result.success((httpResponse, response.data ?? Data())))
             } else {
                 completion(Result.failure(AlamofireRequestExecutor.defineError(
                     responseError: response.error,
@@ -114,7 +114,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
                     )
                 ))
             } else if let httpResponse = response.response {
-                completion(Result.success((httpResponse, response.result.value)))
+                completion(Result.success((httpResponse, response.result.value ?? Data())))
             } else {
                 completion(Result.failure(AlamofireRequestExecutor.defineError(
                     responseError: response.error,
