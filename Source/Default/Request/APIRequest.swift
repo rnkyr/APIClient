@@ -49,5 +49,4 @@ public protocol MultipartFormDataType {
     func append(_ fileURL: URL, withName name: String)
     func append(_ fileURL: URL, withName name: String, fileName: String, mimeType: String)
     func append(_ stream: InputStream, withLength length: UInt64, name: String, fileName: String, mimeType: String)
-    func append(_ stream: InputStream, withLength length: UInt64, headers: [String: String])
 }

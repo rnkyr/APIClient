@@ -24,25 +24,12 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.response { (response: DataResponse<Data?, AFError>) in
-            switch response.result {
-            case .success:
-                if let httpResponse = response.response {
-                    completion(Result.success((httpResponse, response.data ?? Data())))
-                } else {
-                    completion(Result.failure(AlamofireRequestExecutor.defineError(
-                        responseError: response.error,
-                        responseStatusCode: response.response?.statusCode
-                    )))
-                }
-                
-            case .failure(let error):
-                completion(Result.failure(
-                    AlamofireRequestExecutor.defineError(
-                        responseError: error,
-                        responseStatusCode: response.response?.statusCode
-                    )
-                ))
-            }
+            AlamofireRequestExecutor.handleResult(
+                result: response.result,
+                response: response.response,
+                data: response.data,
+                completion: completion
+            )
         }
         
         return cancellationSource
@@ -68,25 +55,12 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.responseJSON { (response: DataResponse<Any, AFError>) in
-            switch response.result {
-            case .success:
-                if let httpResponse = response.response {
-                    completion(Result.success((httpResponse, response.data ?? Data())))
-                } else {
-                    completion(Result.failure(AlamofireRequestExecutor.defineError(
-                        responseError: response.error,
-                        responseStatusCode: response.response?.statusCode
-                    )))
-                }
-                
-            case .failure(let error):
-                completion(Result.failure(
-                    AlamofireRequestExecutor.defineError(
-                        responseError: error,
-                        responseStatusCode: response.response?.statusCode
-                    )
-                ))
-            }
+            AlamofireRequestExecutor.handleResult(
+                result: response.result,
+                response: response.response,
+                data: response.data,
+                completion: completion
+            )
         }
         
         return cancellationSource
@@ -114,29 +88,59 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.responseData { (response: DownloadResponse<Data, AFError>) in
-            switch response.result {
-            case .success(let value):
-                if let httpResponse = response.response {
-                    completion(Result.success((httpResponse, value)))
-                } else {
-                    completion(Result.failure(AlamofireRequestExecutor.defineError(
-                        responseError: response.error,
-                        responseStatusCode: response.response?.statusCode
-                    )))
-                }
-                
-            case .failure(let error):
-                completion(Result.failure(
-                    AlamofireRequestExecutor.defineError(
-                        responseError: error,
-                        responseStatusCode: response.response?.statusCode
-                    )
-                ))
-                
-            }
+            AlamofireRequestExecutor.handleResult(
+                result: response.result,
+                response: response.response,
+                data: response.result.value,
+                completion: completion
+            )
         }
         
         return cancellationSource
+    }
+    
+    private static func handleResult<T>(
+        result: Result<T, AFError>,
+        response: HTTPURLResponse?,
+        data: Data?,
+        completion: @escaping APIResultResponse
+    ) {
+        switch result {
+        case .success:
+            if let httpResponse = response {
+                completion(Result.success((httpResponse, data ?? Data())))
+            } else {
+                completion(Result.failure(AlamofireRequestExecutor.defineError(
+                    responseError: nil,
+                    responseStatusCode: response?.statusCode
+                )))
+            }
+            
+        case .failure(let error):
+            switch error {
+            case .responseSerializationFailed(let reason):
+                switch reason {
+                case .inputDataNilOrZeroLength:
+                    if let httpResponse = response {
+                        completion(Result.success((httpResponse, data ?? Data())))
+                    } else {
+                        completion(Result.failure(AlamofireRequestExecutor.defineError(
+                            responseError: error,
+                            responseStatusCode: response?.statusCode
+                        )))
+                    }
+                    return
+                default: break
+                }
+            default: break
+            }
+            completion(Result.failure(
+                AlamofireRequestExecutor.defineError(
+                    responseError: error,
+                    responseStatusCode: response?.statusCode
+                )
+            ))
+        }
     }
     
     private func path(for request: APIRequest) -> String {
@@ -205,10 +209,4 @@ extension NetworkClientError {
     }
 }
 
-extension Alamofire.MultipartFormData: MultipartFormDataType {
-    
-    public func append(_ stream: InputStream, withLength length: UInt64, headers: [String : String]) {
-        let httpHeaders = HTTPHeaders(headers)
-        append(stream, withLength: length, headers: httpHeaders)
-    }
-}
+extension Alamofire.MultipartFormData: MultipartFormDataType {}
