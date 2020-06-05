@@ -24,20 +24,24 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.response { (response: DataResponse<Data?, AFError>) in
-            if let error = response.error {
+            switch response.result {
+            case .success:
+                if let httpResponse = response.response {
+                    completion(Result.success((httpResponse, response.data ?? Data())))
+                } else {
+                    completion(Result.failure(AlamofireRequestExecutor.defineError(
+                        responseError: response.error,
+                        responseStatusCode: response.response?.statusCode
+                    )))
+                }
+                
+            case .failure(let error):
                 completion(Result.failure(
                     AlamofireRequestExecutor.defineError(
                         responseError: error,
                         responseStatusCode: response.response?.statusCode
                     )
                 ))
-            } else if let httpResponse = response.response {
-                completion(Result.success((httpResponse, response.data ?? Data())))
-            } else {
-                completion(Result.failure(AlamofireRequestExecutor.defineError(
-                    responseError: response.error,
-                    responseStatusCode: response.response?.statusCode
-                )))
             }
         }
         
@@ -64,20 +68,24 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.responseJSON { (response: DataResponse<Any, AFError>) in
-            if let error = response.error {
+            switch response.result {
+            case .success:
+                if let httpResponse = response.response {
+                    completion(Result.success((httpResponse, response.data ?? Data())))
+                } else {
+                    completion(Result.failure(AlamofireRequestExecutor.defineError(
+                        responseError: response.error,
+                        responseStatusCode: response.response?.statusCode
+                    )))
+                }
+                
+            case .failure(let error):
                 completion(Result.failure(
                     AlamofireRequestExecutor.defineError(
                         responseError: error,
                         responseStatusCode: response.response?.statusCode
                     )
                 ))
-            } else if let httpResponse = response.response {
-                completion(Result.success((httpResponse, response.data ?? Data())))
-            } else {
-                completion(Result.failure(AlamofireRequestExecutor.defineError(
-                    responseError: response.error,
-                    responseStatusCode: response.response?.statusCode
-                )))
             }
         }
         
@@ -106,20 +114,25 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         request.responseData { (response: DownloadResponse<Data, AFError>) in
-            if let error = response.error {
+            switch response.result {
+            case .success(let value):
+                if let httpResponse = response.response {
+                    completion(Result.success((httpResponse, value)))
+                } else {
+                    completion(Result.failure(AlamofireRequestExecutor.defineError(
+                        responseError: response.error,
+                        responseStatusCode: response.response?.statusCode
+                    )))
+                }
+                
+            case .failure(let error):
                 completion(Result.failure(
                     AlamofireRequestExecutor.defineError(
                         responseError: error,
                         responseStatusCode: response.response?.statusCode
                     )
                 ))
-            } else if let httpResponse = response.response {
-                completion(Result.success((httpResponse, response.result.value ?? Data())))
-            } else {
-                completion(Result.failure(AlamofireRequestExecutor.defineError(
-                    responseError: response.error,
-                    responseStatusCode: response.response?.statusCode
-                )))
+                
             }
         }
         

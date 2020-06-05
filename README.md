@@ -4,7 +4,7 @@
 
 ## Integration (Cocoapods)
 
-`pod 'APIClient', :git => "https://github.com/rnkyr/APIClient", :tag => "3.0.1"`
+`pod 'APIClient', :git => "https://github.com/rnkyr/APIClient", :tag => "3.0.3"`
 
 There're two podspecs:
 
@@ -53,7 +53,7 @@ By default, APIClient uses `ErrorPreprocessorPlugin(errorPreprocessor: NetworkEr
 
 | Version  | Swift  | Dependencies | iOS |
 |-----------|-------|------------------|------|
-| `3.0.2`       | 5.0  | Alamofire 5.2.1 | 10 |
+| `3.0.3`       | 5.0  | Alamofire 5.2.1 | 10 |
 | `2.9.1`       | 5.0  | Alamofire 4.9,  YALResult 1.4 | 10 |
 | `2.9`       | 5.0  | Alamofire 4.8,  YALResult 1.4 | 10 |
 | `2.8`       | 4.2  | Alamofire 4.7,  YALResult 1.1 | 10 |
