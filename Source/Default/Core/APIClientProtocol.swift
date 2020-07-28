@@ -13,6 +13,13 @@ public protocol NetworkClient {
     
     @discardableResult
     func execute<T>(
+        request: UploadAPIRequest,
+        parser: T,
+        completion: @escaping (Response<T.Representation>) -> Void
+    ) -> Cancelable where T : ResponseParser
+    
+    @discardableResult
+    func execute<T>(
         request: MultipartAPIRequest,
         parser: T,
         completion: @escaping (Response<T.Representation>) -> Void
@@ -29,7 +36,6 @@ public protocol NetworkClient {
     @discardableResult
     func execute<T>(
         request: DownloadAPIRequest,
-        destinationFilePath: URL?,
         parser: T,
         completion: @escaping (Response<T.Representation>) -> Void
     ) -> Cancelable where T: ResponseParser
