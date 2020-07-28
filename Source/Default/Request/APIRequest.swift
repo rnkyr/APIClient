@@ -31,6 +31,13 @@ public extension APIRequest {
 
 public protocol DownloadAPIRequest: APIRequest {
     
+    var destinationFilePath: URL? { get }
+    var progressHandler: ProgressHandler? { get }
+}
+
+public protocol UploadAPIRequest: APIRequest {
+    
+    var fileURL: URL { get }
     var progressHandler: ProgressHandler? { get }
 }
 

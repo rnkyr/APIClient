@@ -66,6 +66,37 @@ open class AlamofireRequestExecutor: RequestExecutor {
         return cancellationSource
     }
     
+    public func execute(uploadRequest: UploadAPIRequest, completion: @escaping APIResultResponse) -> Cancelable {
+        let cancellationSource = CancellationTokenSource()
+        let requestPath = path(for: uploadRequest)
+
+        let request = AF.upload(
+            uploadRequest.fileURL,
+            to: requestPath,
+            method: uploadRequest.afMethod,
+            headers: uploadRequest.afHeaders
+        )
+        cancellationSource.token.register {
+            request.cancel()
+        }
+        if let progressHandler = uploadRequest.progressHandler {
+            request.downloadProgress { (progress: Progress) in
+                progressHandler(progress)
+            }
+        }
+
+        request.responseData { (response: DataResponse<Data, AFError>) in
+            AlamofireRequestExecutor.handleResult(
+                result: response.result,
+                response: response.response,
+                data: response.result.value,
+                completion: completion
+            )
+        }
+
+        return cancellationSource
+    }
+    
     public func execute(downloadRequest: DownloadAPIRequest, destinationPath: URL?, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: downloadRequest)
