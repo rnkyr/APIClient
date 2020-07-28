@@ -46,6 +46,11 @@ public protocol MultipartAPIRequest: DownloadAPIRequest {
     var multipartFormData: ((MultipartFormDataType) -> Void) { get }
 }
 
+public extension MultipartAPIRequest {
+
+    var destinationFilePath: URL? { return nil }
+}
+
 public protocol MultipartFormDataType {
     
     var contentType: String { get }
