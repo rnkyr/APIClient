@@ -17,6 +17,7 @@ public class APIRequestProxy: MultipartAPIRequest {
     public var multipartFormData: ((MultipartFormDataType) -> Void)
     public var progressHandler: ProgressHandler?
     public var destinationFilePath: URL?
+    public var httpBody: Data?
     
     public init(request: APIRequest) {
         if let proxy = request as? APIRequestProxy {
@@ -32,5 +33,6 @@ public class APIRequestProxy: MultipartAPIRequest {
         multipartFormData = (request as? MultipartAPIRequest)?.multipartFormData ?? { _ in }
         progressHandler = (request as? DownloadAPIRequest)?.progressHandler
         destinationFilePath = (request as? DownloadAPIRequest)?.destinationFilePath
+        httpBody = request.httpBody
     }
 }

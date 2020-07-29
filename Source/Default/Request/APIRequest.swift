@@ -19,6 +19,7 @@ public protocol APIRequest {
     var encoding: APIRequestEncoding { get }
     var parameters: [String: Any]? { get }
     var headers: [String: String]? { get }
+    var httpBody: Data? { get }
 }
 
 public extension APIRequest {
@@ -27,6 +28,7 @@ public extension APIRequest {
     var parameters: [String: Any]? { return nil }
     var encoding: APIRequestEncoding { return .url }
     var headers: [String: String]? { return nil }
+    var httpBody: Data? { return nil }
 }
 
 public protocol DownloadAPIRequest: APIRequest {
