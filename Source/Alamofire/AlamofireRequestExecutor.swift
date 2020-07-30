@@ -9,7 +9,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         self.baseURL = baseURL
     }
     
-    public func execute(request: APIRequest, completion: @escaping APIResultResponse) -> Cancelable {
+    open func execute(request: APIRequest, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: request)
         
@@ -37,7 +37,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         return cancellationSource
     }
     
-    public func execute(multipartRequest: MultipartAPIRequest, completion: @escaping APIResultResponse) -> Cancelable {
+    open func execute(multipartRequest: MultipartAPIRequest, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: multipartRequest)
         
@@ -69,7 +69,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         return cancellationSource
     }
     
-    public func execute(uploadRequest: UploadAPIRequest, completion: @escaping APIResultResponse) -> Cancelable {
+    open func execute(uploadRequest: UploadAPIRequest, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: uploadRequest)
 
@@ -101,7 +101,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         return cancellationSource
     }
     
-    public func execute(downloadRequest: DownloadAPIRequest, destinationPath: URL?, completion: @escaping APIResultResponse) -> Cancelable {
+    open func execute(downloadRequest: DownloadAPIRequest, destinationPath: URL?, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: downloadRequest)
         
@@ -179,7 +179,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
     }
     
-    private func path(for request: APIRequest) -> String {
+    open func path(for request: APIRequest) -> String {
         return baseURL
             .appendingPathComponent(request.path)
             .absoluteString
