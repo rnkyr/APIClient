@@ -1,7 +1,7 @@
 import Foundation
 
 public typealias APIResultResponse = (Result<APIClient.HTTPResponse, NetworkClientError>) -> Void
-public typealias RequestModifier = (URLRequest) -> URLRequest
+public typealias RequestModifier = (URLRequest, APIRequest) -> URLRequest
 
 public protocol RequestExecutor {
     

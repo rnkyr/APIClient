@@ -13,19 +13,19 @@ open class AlamofireRequestExecutor: RequestExecutor {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: request)
         
-        let request = AF.request(
+        let afRequest = AF.request(
             requestPath,
             method: request.afMethod,
             parameters: request.parameters,
             encoding: request.afEncoding,
             headers: request.afHeaders,
-            requestModifier: { request in request = requestModifier?(request) ?? request }
+            requestModifier: { urlRequest in urlRequest = requestModifier?(urlRequest, request) ?? urlRequest }
         )
         cancellationSource.token.register {
-            request.cancel()
+            afRequest.cancel()
         }
         
-        request.response { (response: DataResponse<Data?, AFError>) in
+        afRequest.response { (response: DataResponse<Data?, AFError>) in
             AlamofireRequestExecutor.handleResult(
                 result: response.result,
                 response: response.response,
@@ -46,7 +46,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
             to: requestPath,
             method: multipartRequest.afMethod,
             headers: multipartRequest.afHeaders,
-            requestModifier: { request in request = requestModifier?(request) ?? request }
+            requestModifier: { urlRequest in urlRequest = requestModifier?(urlRequest, multipartRequest) ?? urlRequest }
         )
         cancellationSource.token.register {
             request.cancel()
@@ -78,7 +78,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
             to: requestPath,
             method: uploadRequest.afMethod,
             headers: uploadRequest.afHeaders,
-            requestModifier: { request in request = requestModifier?(request) ?? request }
+            requestModifier: { urlRequest in urlRequest = requestModifier?(urlRequest, uploadRequest) ?? urlRequest }
         )
         cancellationSource.token.register {
             request.cancel()
@@ -111,7 +111,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
             parameters: downloadRequest.parameters,
             encoding: downloadRequest.afEncoding,
             headers: downloadRequest.afHeaders,
-            requestModifier: { request in request = requestModifier?(request) ?? request },
+            requestModifier: { urlRequest in urlRequest = requestModifier?(urlRequest, downloadRequest) ?? urlRequest },
             to: destination(for: destinationPath)
         )
         cancellationSource.token.register {

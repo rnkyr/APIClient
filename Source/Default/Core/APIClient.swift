@@ -257,9 +257,9 @@ private extension APIClient {
     }
     
     func modifier() -> RequestModifier {
-        return { [weak self] request in
-            (self?.plugins ?? []).reduce(request) { (request, plugin) -> URLRequest in
-                plugin.modify(request)
+        return { [weak self] urlRequest, apiRequest in
+            (self?.plugins ?? []).reduce(urlRequest) { (request, plugin) -> URLRequest in
+                plugin.modify(request, apiRequest: apiRequest)
             }
         }
     }

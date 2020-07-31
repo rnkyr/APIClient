@@ -18,7 +18,7 @@ public protocol PluginType {
     func willSend(_ request: APIRequest)
     
     /// Called for each prepared URLRequest so that callee can modify it
-    func modify(_ request: URLRequest) -> URLRequest
+    func modify(_ request: URLRequest, apiRequest: APIRequest) -> URLRequest
     
     /// Called immediately after data received.
     func didReceive(response: APIClient.HTTPResponse)
@@ -47,7 +47,7 @@ public extension PluginType {
     func willSend(_ request: APIRequest) {
     }
     
-    func modify(_ request: URLRequest) -> URLRequest {
+    func modify(_ request: URLRequest, apiRequest: APIRequest) -> URLRequest {
         return request
     }
     
