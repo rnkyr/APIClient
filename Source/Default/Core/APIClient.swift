@@ -52,7 +52,7 @@ open class APIClient: NSObject, NetworkClient {
         let resultProducer: (@escaping APIResultResponse) -> Cancelable = { completion in
             let request = self.prepare(request: request)
             self.willSend(request: request)
-            return self.requestExecutor.execute(request: request, completion: completion)
+            return self.requestExecutor.execute(request: request, requestModifier: self.modifier(), completion: completion)
         }
         
         return _execute(resultProducer, deserializer: self.deserializer, parser: parser, completion: completion)
@@ -83,7 +83,7 @@ open class APIClient: NSObject, NetworkClient {
                 fatalError("Unexpected request type. Expected \(MultipartAPIRequest.self)")
             }
             self.willSend(request: request)
-            return self.requestExecutor.execute(multipartRequest: request, completion: completion)
+            return self.requestExecutor.execute(multipartRequest: request, requestModifier: self.modifier(), completion: completion)
         }
         
         return _execute(resultProducer, deserializer: self.deserializer, parser: parser, completion: completion)
@@ -116,7 +116,7 @@ open class APIClient: NSObject, NetworkClient {
             
             self.willSend(request: request)
             
-            return self.requestExecutor.execute(uploadRequest: request, completion: completion)
+            return self.requestExecutor.execute(uploadRequest: request, requestModifier: self.modifier(), completion: completion)
         }
         
         return _execute(resultProducer, deserializer: self.deserializer, parser: parser, completion: completion)
@@ -149,7 +149,7 @@ open class APIClient: NSObject, NetworkClient {
             
             self.willSend(request: request)
             
-            return self.requestExecutor.execute(downloadRequest: request, destinationPath: request.destinationFilePath, completion: completion)
+            return self.requestExecutor.execute(downloadRequest: request, requestModifier: self.modifier(), destinationPath: request.destinationFilePath, completion: completion)
         }
         
         return _execute(resultProducer, deserializer: self.deserializer, parser: parser, completion: completion)
@@ -253,6 +253,14 @@ private extension APIClient {
             plugin.resolve(error, onResolved: onResolved)
         } else {
             onResolved(false)
+        }
+    }
+    
+    func modifier() -> RequestModifier {
+        return { [weak self] request in
+            (self?.plugins ?? []).reduce(request) { (request, plugin) -> URLRequest in
+                plugin.modify(request)
+            }
         }
     }
     

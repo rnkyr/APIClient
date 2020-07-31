@@ -9,7 +9,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         self.baseURL = baseURL
     }
     
-    open func execute(request: APIRequest, completion: @escaping APIResultResponse) -> Cancelable {
+    open func execute(request: APIRequest, requestModifier: RequestModifier?, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: request)
         
@@ -19,7 +19,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
             parameters: request.parameters,
             encoding: request.afEncoding,
             headers: request.afHeaders,
-            requestModifier: requestModifier(for: request)
+            requestModifier: { request in request = requestModifier?(request) ?? request }
         )
         cancellationSource.token.register {
             request.cancel()
@@ -37,7 +37,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         return cancellationSource
     }
     
-    open func execute(multipartRequest: MultipartAPIRequest, completion: @escaping APIResultResponse) -> Cancelable {
+    open func execute(multipartRequest: MultipartAPIRequest, requestModifier: RequestModifier?, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: multipartRequest)
         
@@ -46,7 +46,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
             to: requestPath,
             method: multipartRequest.afMethod,
             headers: multipartRequest.afHeaders,
-            requestModifier: requestModifier(for: multipartRequest)
+            requestModifier: { request in request = requestModifier?(request) ?? request }
         )
         cancellationSource.token.register {
             request.cancel()
@@ -69,7 +69,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         return cancellationSource
     }
     
-    open func execute(uploadRequest: UploadAPIRequest, completion: @escaping APIResultResponse) -> Cancelable {
+    open func execute(uploadRequest: UploadAPIRequest, requestModifier: RequestModifier?, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: uploadRequest)
 
@@ -78,7 +78,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
             to: requestPath,
             method: uploadRequest.afMethod,
             headers: uploadRequest.afHeaders,
-            requestModifier: requestModifier(for: uploadRequest)
+            requestModifier: { request in request = requestModifier?(request) ?? request }
         )
         cancellationSource.token.register {
             request.cancel()
@@ -101,7 +101,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         return cancellationSource
     }
     
-    open func execute(downloadRequest: DownloadAPIRequest, destinationPath: URL?, completion: @escaping APIResultResponse) -> Cancelable {
+    open func execute(downloadRequest: DownloadAPIRequest, requestModifier: RequestModifier?, destinationPath: URL?, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: downloadRequest)
         
@@ -111,7 +111,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
             parameters: downloadRequest.parameters,
             encoding: downloadRequest.afEncoding,
             headers: downloadRequest.afHeaders,
-            requestModifier: requestModifier(for: downloadRequest),
+            requestModifier: { request in request = requestModifier?(request) ?? request },
             to: destination(for: destinationPath)
         )
         cancellationSource.token.register {
@@ -196,18 +196,6 @@ open class AlamofireRequestExecutor: RequestExecutor {
         }
         
         return destination
-    }
-    
-    private func requestModifier(for request: APIRequest) -> Session.RequestModifier? {
-        guard let httpBody = request.httpBody else {
-            return nil
-        }
-        
-        let requestModifier: Session.RequestModifier = { urlRequest in
-            urlRequest.httpBody = httpBody
-        }
-        
-        return requestModifier
     }
     
     private static func defineError(responseError: AFError?, responseStatusCode: Int?) -> NetworkClientError {
