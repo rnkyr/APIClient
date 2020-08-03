@@ -68,7 +68,7 @@ public final class AuthorizationPlugin: PluginType {
         }
         headers[provider.authorizationType.key] = prefix + provider.authorizationToken
         
-        let proxy = APIRequestProxy(request: request)
+        let proxy = request.proxy()
         proxy.headers = headers
         
         return proxy

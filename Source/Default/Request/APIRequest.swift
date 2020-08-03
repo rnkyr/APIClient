@@ -41,14 +41,10 @@ public protocol UploadAPIRequest: APIRequest {
     var progressHandler: ProgressHandler? { get }
 }
 
-public protocol MultipartAPIRequest: DownloadAPIRequest {
+public protocol MultipartAPIRequest: APIRequest {
     
+    var progressHandler: ProgressHandler? { get }
     var multipartFormData: ((MultipartFormDataType) -> Void) { get }
-}
-
-public extension MultipartAPIRequest {
-
-    var destinationFilePath: URL? { return nil }
 }
 
 public protocol MultipartFormDataType {

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'APIClient'
-  s.version      = '3.0.7'
+  s.version      = '3.0.8'
   s.summary      = 'Extensible network client.'
   s.homepage     = 'https://github.com/rnkyr/APIClient.git'
   s.license      = { type: 'MIT', file: 'License' }
