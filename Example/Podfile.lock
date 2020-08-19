@@ -1,11 +1,11 @@
 PODS:
   - Alamofire (5.2.1)
-  - APIClient (3.0.5):
-    - APIClient/Alamofire (= 3.0.5)
-  - APIClient/Alamofire (3.0.5):
+  - APIClient (3.0.9):
+    - APIClient/Alamofire (= 3.0.9)
+  - APIClient/Alamofire (3.0.9):
     - Alamofire (= 5.2.1)
     - APIClient/Core
-  - APIClient/Core (3.0.5)
+  - APIClient/Core (3.0.9)
   - Mockingjay (3.0.0-alpha.1):
     - Mockingjay/Core (= 3.0.0-alpha.1)
     - Mockingjay/XCTest (= 3.0.0-alpha.1)
@@ -34,7 +34,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Alamofire: e911732990610fe89af59ac0077f923d72dc3dfd
-  APIClient: 75e7ef52d1fb04b72f120952c6e72c31cf13b13f
+  APIClient: b6adb524585ad40055475e808aed6b0640dbd4e6
   Mockingjay: 0f7c5aa49c7f1b95621cee3c79b557141f5a225c
   SwiftLint: 22ccbbe3b8008684be5955693bab135e0ed6a447
   URITemplate: 58e0d47f967006c5d59888af5356c4a8ed3b197d

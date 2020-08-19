@@ -55,7 +55,7 @@ open class APIClient: NSObject, NetworkClient {
             return self.requestExecutor.execute(request: request, requestModifier: self.modifier(), completion: completion)
         }
         
-        return _execute(resultProducer, deserializer: self.deserializer, parser: parser, completion: completion)
+        return _execute(resultProducer, parser: parser, completion: completion)
     }
     
     @discardableResult
@@ -86,7 +86,7 @@ open class APIClient: NSObject, NetworkClient {
             return self.requestExecutor.execute(multipartRequest: request, requestModifier: self.modifier(), completion: completion)
         }
         
-        return _execute(resultProducer, deserializer: self.deserializer, parser: parser, completion: completion)
+        return _execute(resultProducer, parser: parser, completion: completion)
     }
     
     @discardableResult
@@ -119,7 +119,7 @@ open class APIClient: NSObject, NetworkClient {
             return self.requestExecutor.execute(uploadRequest: request, requestModifier: self.modifier(), completion: completion)
         }
         
-        return _execute(resultProducer, deserializer: self.deserializer, parser: parser, completion: completion)
+        return _execute(resultProducer, parser: parser, completion: completion)
     }
     
     @discardableResult
@@ -152,12 +152,11 @@ open class APIClient: NSObject, NetworkClient {
             return self.requestExecutor.execute(downloadRequest: request, requestModifier: self.modifier(), destinationPath: request.destinationFilePath, completion: completion)
         }
         
-        return _execute(resultProducer, deserializer: self.deserializer, parser: parser, completion: completion)
+        return _execute(resultProducer, parser: parser, completion: completion)
     }
     
     private func _execute<T>(
         _ resultProducer: @escaping (@escaping APIResultResponse) -> Cancelable,
-        deserializer: Deserializer,
         parser: T,
         completion: @escaping (Response<T.Representation>) -> Void
     ) -> Cancelable where T: ResponseParser {
@@ -228,7 +227,7 @@ open class APIClient: NSObject, NetworkClient {
             switch deserializationResult {
             case .failure(let error): completion(Response.failure(NetworkClientError.serialization(error)))
             case .success(let object):
-                let parserResult = parser.parse(object)
+                let parserResult = parser.parse(object, response.httpResponse)
                 switch parserResult {
                 case .failure(let error): completion(Response.failure(NetworkClientError.serialization(error)))
                 case .success(let result):

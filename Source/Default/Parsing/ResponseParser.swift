@@ -5,6 +5,14 @@ public protocol ResponseParser {
     associatedtype Representation
     
     func parse(_ object: AnyObject) -> Result<Representation, NetworkClientError.SerializationError>
+    func parse(_ object: AnyObject, _ response: HTTPURLResponse) -> Result<Representation, NetworkClientError.SerializationError>
+}
+
+public extension ResponseParser {
+    
+    func parse(_ object: AnyObject, _ response: HTTPURLResponse) -> Result<Representation, NetworkClientError.SerializationError> {
+        return parse(object)
+    }
 }
 
 public struct EmptyParser: ResponseParser {

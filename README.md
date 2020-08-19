@@ -4,7 +4,7 @@
 
 ## Integration (Cocoapods)
 
-`pod 'APIClient', :git => "https://github.com/rnkyr/APIClient", :tag => "3.0.2"`
+`pod 'APIClient', :git => "https://github.com/rnkyr/APIClient", :tag => "3.0.9"`
 
 There're two podspecs:
 
