@@ -12,6 +12,7 @@ internal typealias JSON = [String: Any]
 public enum ParserError: Error {
     
     case keyNotFound
+    case objectIsNull
 }
 
 open class KeyPathParser {
@@ -23,6 +24,9 @@ open class KeyPathParser {
     }
     
     func valueForKeyPath(in object: Any) throws -> Any {
+        guard !(object is NSNull) else {
+            throw ParserError.objectIsNull
+        }
         if let keyPath = keyPath, let dictionary = object as? JSON {
             if let value = dictionary[keyPath] {
                 return value
