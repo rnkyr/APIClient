@@ -25,6 +25,8 @@ public protocol PluginType {
     
     func canResolve(_ error: Error) -> Bool
     
+    func isResolvingInProgress(_ error: Error) -> Bool
+    
     /// Called to resolve error in case it happened.
     func resolve(_ error: Error, onResolved: @escaping (Bool) -> Void)
     
@@ -55,6 +57,10 @@ public extension PluginType {
     }
     
     func canResolve(_ error: Error) -> Bool {
+        return false
+    }
+    
+    func isResolvingInProgress(_ error: Error) -> Bool {
         return false
     }
     

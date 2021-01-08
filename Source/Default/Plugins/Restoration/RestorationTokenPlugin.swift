@@ -55,6 +55,13 @@ public class RestorationTokenPlugin: PluginType {
         }
         return false
     }
+    
+    public func isResolvingInProgress(_ error: Error) -> Bool {
+        if authErrorResolving(error), inProgress == true {
+            return true
+        }
+        return false
+    }
 
     public func resolve(_ error: Error, onResolved: @escaping (Bool) -> Void) {
         guard authErrorResolving(error) else {
