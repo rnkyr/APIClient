@@ -34,7 +34,7 @@ final class HaltingRequestsService: NSObject {
         super.init()
         
         if restorationPlugin == nil {
-            /// we need to know when authorization fails at least from one of the plugins
+            // we need to know when authorization fails at least from one of the plugins
             authorizationPlugin?.delegate = self
         }
         restorationPlugin?.delegate = self
@@ -78,13 +78,15 @@ extension HaltingRequestsService: AuthorizationPluginDelegate {
 
 extension HaltingRequestsService: RestorationTokenPluginDelegate {
     
-    func failedToRestore() {
-        shouldHalt = false
-        shouldCancel = supportCancelling
-    }
-    
     func reachUnauthorizedError() {
         shouldHalt = supportHalting
+    }
+    
+    func failedToRestore() {
+        shouldHalt = false
+        shouldCancel = false
+        haltingRequests.forEach { $0.cancel() }
+        haltingRequests.removeAll()
     }
     
     func restored() {
