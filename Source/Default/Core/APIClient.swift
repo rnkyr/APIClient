@@ -170,7 +170,17 @@ open class APIClient: NSObject, NetworkClient {
                             self.processResponse(response: response, parser: parser, completion: completion)
                         }
                     } else {
-                        self.processResponse(response: response, parser: parser, completion: completion)
+                        if self.isResolvingInProgress(error) {
+                            self.haltingService.add(
+                                execution: { [weak self] in
+                                    _ = resultProducer { response in
+                                        self?.processResponse(response: response, parser: parser, completion: completion)
+                                    }
+                                },
+                                cancellation: { completion(Response.failure(.network(.canceled))) })
+                        } else {
+                            self.processResponse(response: response, parser: parser, completion: completion)
+                        }
                     }
                 })
             } else {
@@ -253,6 +263,10 @@ private extension APIClient {
         } else {
             onResolved(false)
         }
+    }
+    
+    func isResolvingInProgress(_ error: Error) -> Bool {
+        return plugins.contains(where: { $0.isResolvingInProgress(error) })
     }
     
     func modifier() -> RequestModifier {
