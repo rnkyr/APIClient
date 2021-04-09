@@ -13,7 +13,7 @@ extension APIRequest {
     }
 }
 
-public class APIRequestProxy: APIRequest {
+open class APIRequestProxy: APIRequest {
     
     public let origin: APIRequest
     public var path: String
@@ -32,7 +32,7 @@ public class APIRequestProxy: APIRequest {
         }
     }
     
-    fileprivate init(request: APIRequest) {
+    public init(request: APIRequest) {
         if let proxy = request as? APIRequestProxy {
             origin = proxy.origin
         } else {
@@ -46,12 +46,12 @@ public class APIRequestProxy: APIRequest {
     }
 }
 
-public final class MultipartAPIRequestProxy: APIRequestProxy, MultipartAPIRequest {
+open class MultipartAPIRequestProxy: APIRequestProxy, MultipartAPIRequest {
     
     public var progressHandler: ProgressHandler?
     public var multipartFormData: ((MultipartFormDataType) -> Void)
     
-    fileprivate override init(request: APIRequest) {
+    public override init(request: APIRequest) {
         multipartFormData = (request as? MultipartAPIRequest)?.multipartFormData ?? { _ in }
         progressHandler = (request as? UploadAPIRequest)?.progressHandler
         
@@ -59,12 +59,12 @@ public final class MultipartAPIRequestProxy: APIRequestProxy, MultipartAPIReques
     }
 }
 
-public final class UploadAPIRequestProxy: APIRequestProxy, UploadAPIRequest {
+open class UploadAPIRequestProxy: APIRequestProxy, UploadAPIRequest {
     
     public var fileURL: URL
     public var progressHandler: ProgressHandler?
     
-    fileprivate override init(request: APIRequest) {
+    public override init(request: APIRequest) {
         progressHandler = (request as? UploadAPIRequest)?.progressHandler
         fileURL = (request as? UploadAPIRequest)?.fileURL ?? URL(fileURLWithPath: "")
         
@@ -72,12 +72,12 @@ public final class UploadAPIRequestProxy: APIRequestProxy, UploadAPIRequest {
     }
 }
 
-public final class DownloadAPIRequestProxy: APIRequestProxy, DownloadAPIRequest {
+open class DownloadAPIRequestProxy: APIRequestProxy, DownloadAPIRequest {
     
     public var progressHandler: ProgressHandler?
     public var destinationFilePath: URL?
     
-    fileprivate override init(request: APIRequest) {
+    public override init(request: APIRequest) {
         destinationFilePath = (request as? DownloadAPIRequest)?.destinationFilePath
         progressHandler = (request as? UploadAPIRequest)?.progressHandler
         
