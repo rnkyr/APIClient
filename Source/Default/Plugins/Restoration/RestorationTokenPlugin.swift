@@ -95,7 +95,7 @@ public class RestorationTokenPlugin: PluginType {
     }
 }
 
-protocol RestorationTokenPluginDelegate: class {
+protocol RestorationTokenPluginDelegate: AnyObject {
     
     func reachUnauthorizedError()
     func restored()
