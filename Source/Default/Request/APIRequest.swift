@@ -4,7 +4,7 @@ public typealias ProgressHandler = (Progress) -> ()
 
 public enum APIRequestEncoding {
     
-    case json, url
+    case json, jsonPercentEncoding, url
 }
 
 public enum APIRequestMethod: String {
