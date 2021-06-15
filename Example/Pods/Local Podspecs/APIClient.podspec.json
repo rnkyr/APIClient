@@ -1,6 +1,6 @@
 {
   "name": "APIClient",
-  "version": "3.0.9",
+  "version": "3.0.18",
   "summary": "Extensible network client.",
   "homepage": "https://github.com/rnkyr/APIClient.git",
   "license": {
@@ -14,7 +14,7 @@
   },
   "source": {
     "git": "https://github.com/Yalantis/APIClient.git",
-    "tag": "3.0.9"
+    "tag": "3.0.18"
   },
   "frameworks": "Foundation",
   "platforms": {
