@@ -64,7 +64,7 @@ extension NetworkClientError {
         case NSURLErrorCancelled:
             return NetworkClientError.network(NetworkError.canceled)
             
-        case NSURLErrorNotConnectedToInternet, NSURLErrorTimedOut:
+        case NSURLErrorNotConnectedToInternet, NSURLErrorTimedOut, NSURLErrorDataNotAllowed:
             return NetworkClientError.network(NetworkError.connection)
             
         case 401:
