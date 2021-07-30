@@ -48,7 +48,16 @@ public class RestorationTokenPlugin: PluginType {
         }
     }
 
+    private var request: APIRequest?
+    
+    public func willSend(_ request: APIRequest) {
+        self.request = request
+    }
+    
     public func canResolve(_ error: Error) -> Bool {
+        guard isAuthorizableRequest() else {
+            return false
+        }
         if authErrorResolving(error), inProgress == false {
             delegate?.reachUnauthorizedError()
             return true
@@ -56,8 +65,17 @@ public class RestorationTokenPlugin: PluginType {
         return false
     }
     
+    private func isAuthorizableRequest() -> Bool {
+        let request = (request as? APIRequestProxy)?.origin ?? request
+        guard let request = request, let authRequest = request as? AuthorizableRequest, authRequest.authorizationRequired else {
+            return false
+        }
+        
+        return true
+    }
+    
     public func isResolvingInProgress(_ error: Error) -> Bool {
-        return authErrorResolving(error) && inProgress == true
+        return authErrorResolving(error) && inProgress == true && isAuthorizableRequest()
     }
 
     public func resolve(_ error: Error, onResolved: @escaping (Bool) -> Void) {
