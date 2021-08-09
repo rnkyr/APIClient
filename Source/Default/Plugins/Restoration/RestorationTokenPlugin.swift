@@ -25,6 +25,7 @@ public class RestorationTokenPlugin: PluginType {
     private var inProgress = false
     private let credentialProvider: AccessCredentialsProvider
     private let authErrorResolving: AuthErrorResolving
+    private var requests: [APIRequest] = []
 
     /// - Parameters:
     ///   - credentialProvider: an access credentials provider that provides all required data to restore token; captured
@@ -47,11 +48,13 @@ public class RestorationTokenPlugin: PluginType {
             return false
         }
     }
-
-    private var request: APIRequest?
     
     public func willSend(_ request: APIRequest) {
-        self.request = request
+        requests.append(request)
+    }
+    
+    public func didReceive(response: APIClient.HTTPResponse) {
+        requests.popLast()
     }
     
     public func canResolve(_ error: Error) -> Bool {
@@ -66,7 +69,7 @@ public class RestorationTokenPlugin: PluginType {
     }
     
     private func isAuthorizableRequest() -> Bool {
-        let request = (request as? APIRequestProxy)?.origin ?? request
+        let request = (requests.last as? APIRequestProxy)?.origin ?? requests.last
         guard let request = request, let authRequest = request as? AuthorizableRequest, authRequest.authorizationRequired else {
             return false
         }
