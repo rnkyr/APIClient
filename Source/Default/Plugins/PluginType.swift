@@ -21,9 +21,9 @@ public protocol PluginType {
     func modify(_ request: URLRequest, apiRequest: APIRequest) -> URLRequest
     
     /// Called immediately after data received.
-    func didReceive(response: APIClient.HTTPResponse)
+    func didReceive(response: APIClient.HTTPResponse?)
     
-    func canResolve(_ error: Error) -> Bool
+    func canResolve(_ error: Error, _ request: APIRequest) -> Bool
     
     func isResolvingInProgress(_ error: Error) -> Bool
     
@@ -53,10 +53,10 @@ public extension PluginType {
         return request
     }
     
-    func didReceive(response: APIClient.HTTPResponse) {
+    func didReceive(response: APIClient.HTTPResponse?) {
     }
     
-    func canResolve(_ error: Error) -> Bool {
+    func canResolve(_ error: Error, _ request: APIRequest) -> Bool {
         return false
     }
     

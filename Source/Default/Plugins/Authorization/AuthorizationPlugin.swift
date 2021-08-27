@@ -41,7 +41,7 @@ public final class AuthorizationPlugin: PluginType {
         }
     }
     
-    public func canResolve(_ error: Error) -> Bool {
+    public func canResolve(_ error: Error, _ request: APIRequest) -> Bool {
         if authErrorResolving(error) {
             delegate?.reachAuthorizationError()
             

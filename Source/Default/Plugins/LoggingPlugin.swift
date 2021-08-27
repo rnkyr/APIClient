@@ -34,8 +34,8 @@ public final class LoggingPlugin: PluginType {
         outputClosure("Ready to send - \(describe(request))")
     }
     
-    public func didReceive(response: APIClient.HTTPResponse) {
-        outputClosure("Received - \(describe(response))")
+    public func didReceive(response: APIClient.HTTPResponse?) {
+        outputClosure("Received - \(response == nil ? "nil" : describe(response!))")
     }
     
     public func resolve(_ error: Error) -> Bool {

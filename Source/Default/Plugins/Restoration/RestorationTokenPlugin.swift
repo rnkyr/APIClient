@@ -25,7 +25,6 @@ public class RestorationTokenPlugin: PluginType {
     private var inProgress = false
     private let credentialProvider: AccessCredentialsProvider
     private let authErrorResolving: AuthErrorResolving
-    private var requests: [APIRequest] = []
 
     /// - Parameters:
     ///   - credentialProvider: an access credentials provider that provides all required data to restore token; captured
@@ -49,18 +48,11 @@ public class RestorationTokenPlugin: PluginType {
         }
     }
     
-    public func willSend(_ request: APIRequest) {
-        requests.append(request)
-    }
-    
-    public func didReceive(response: APIClient.HTTPResponse) {
-        requests.popLast()
-    }
-    
-    public func canResolve(_ error: Error) -> Bool {
-        guard isAuthorizableRequest() else {
+    public func canResolve(_ error: Error, _ request: APIRequest) -> Bool {
+        guard isAuthorizableRequest(request) else {
             return false
         }
+        
         if authErrorResolving(error), inProgress == false {
             delegate?.reachUnauthorizedError()
             return true
@@ -68,9 +60,9 @@ public class RestorationTokenPlugin: PluginType {
         return false
     }
     
-    private func isAuthorizableRequest() -> Bool {
-        let request = (requests.last as? APIRequestProxy)?.origin ?? requests.last
-        guard let request = request, let authRequest = request as? AuthorizableRequest, authRequest.authorizationRequired else {
+    private func isAuthorizableRequest(_ request: APIRequest) -> Bool {
+        let request = (request as? APIRequestProxy)?.origin ?? request
+        guard let authRequest = request as? AuthorizableRequest, authRequest.authorizationRequired else {
             return false
         }
         
@@ -78,7 +70,7 @@ public class RestorationTokenPlugin: PluginType {
     }
     
     public func isResolvingInProgress(_ error: Error) -> Bool {
-        return authErrorResolving(error) && inProgress == true && isAuthorizableRequest()
+        return authErrorResolving(error) && inProgress == true
     }
 
     public func resolve(_ error: Error, onResolved: @escaping (Bool) -> Void) {

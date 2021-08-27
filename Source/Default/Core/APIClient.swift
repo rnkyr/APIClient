@@ -4,6 +4,8 @@ open class APIClient: NSObject, NetworkClient {
     
     public typealias HTTPResponse = (httpResponse: HTTPURLResponse, data: Data)
     
+    private typealias ResultProducer = (@escaping (Result<APIClient.HTTPResponse, NetworkClientError>, APIRequest) -> Void) -> Cancelable
+    
     private let requestExecutor: RequestExecutor
     private let deserializer: Deserializer
     private let plugins: [PluginType]
@@ -43,16 +45,21 @@ open class APIClient: NSObject, NetworkClient {
                     let newSource = self.execute(request: request, parser: parser, completion: completion)
                     source.token.register { newSource.cancel() }
                 },
-                cancellation: { completion(Response.failure(NetworkClientError.network(.canceled))) }
+                cancellation: {
+                    completion(Response.failure(NetworkClientError.network(.canceled)))
+                }
             )
             
             return source
         }
         
-        let resultProducer: (@escaping APIResultResponse) -> Cancelable = { completion in
+        let resultProducer: ResultProducer = { completion in
             let request = self.prepare(request: request)
             self.willSend(request: request)
-            return self.requestExecutor.execute(request: request, requestModifier: self.modifier(), completion: completion)
+            return self.requestExecutor.execute(request: request, requestModifier: self.modifier(), completion: { response in
+                self.didReceive(response.value)
+                completion(response, request)
+            })
         }
         
         return _execute(resultProducer, parser: parser, completion: completion)
@@ -78,12 +85,15 @@ open class APIClient: NSObject, NetworkClient {
             return source
         }
         
-        let resultProducer: (@escaping APIResultResponse) -> Cancelable = { completion in
+        let resultProducer: ResultProducer = { completion in
             guard let request = self.prepare(request: request) as? MultipartAPIRequest else {
                 fatalError("Unexpected request type. Expected \(MultipartAPIRequest.self)")
             }
             self.willSend(request: request)
-            return self.requestExecutor.execute(multipartRequest: request, requestModifier: self.modifier(), completion: completion)
+            return self.requestExecutor.execute(multipartRequest: request, requestModifier: self.modifier(), completion: { response in
+                self.didReceive(response.value)
+                completion(response, request)
+            })
         }
         
         return _execute(resultProducer, parser: parser, completion: completion)
@@ -109,14 +119,16 @@ open class APIClient: NSObject, NetworkClient {
             return source
         }
         
-        let resultProducer: (@escaping APIResultResponse) -> Cancelable = { completion in
+        let resultProducer: ResultProducer = { completion in
             guard let request = self.prepare(request: request) as? UploadAPIRequest else {
                 fatalError("Unexpected request type. Expected \(UploadAPIRequest.self)")
             }
             
             self.willSend(request: request)
-            
-            return self.requestExecutor.execute(uploadRequest: request, requestModifier: self.modifier(), completion: completion)
+            return self.requestExecutor.execute(uploadRequest: request, requestModifier: self.modifier(), completion: { response in
+                self.didReceive(response.value)
+                completion(response, request)
+            })
         }
         
         return _execute(resultProducer, parser: parser, completion: completion)
@@ -142,42 +154,46 @@ open class APIClient: NSObject, NetworkClient {
             return source
         }
         
-        let resultProducer: (@escaping APIResultResponse) -> Cancelable = { completion in
+        let resultProducer: ResultProducer = { completion in
             guard let request = self.prepare(request: request) as? DownloadAPIRequest else {
                 fatalError("Unexpected request type. Expected \(DownloadAPIRequest.self)")
             }
             
             self.willSend(request: request)
-            
-            return self.requestExecutor.execute(downloadRequest: request, requestModifier: self.modifier(), destinationPath: request.destinationFilePath, completion: completion)
+            return self.requestExecutor.execute(downloadRequest: request, requestModifier: self.modifier(), destinationPath: request.destinationFilePath, completion: { response in
+                self.didReceive(response.value)
+                completion(response, request)
+            })
         }
         
         return _execute(resultProducer, parser: parser, completion: completion)
     }
     
     private func _execute<T>(
-        _ resultProducer: @escaping (@escaping APIResultResponse) -> Cancelable,
+        _ resultProducer: @escaping ResultProducer,
         parser: T,
         completion: @escaping (Response<T.Representation>) -> Void
     ) -> Cancelable where T: ResponseParser {
-        return resultProducer { response in
+        return resultProducer { response, request in
             let validatedResult = self.validateResult(response)
             
             if let error = validatedResult.error {
-                self.resolve(error: error, onResolved: { isResolved in
+                self.resolve(error: error, request: request, onResolved: { isResolved in
                     if isResolved {
-                        _ = resultProducer { response in
+                        _ = resultProducer { response, _ in
                             self.processResponse(response: response, parser: parser, completion: completion)
                         }
                     } else {
                         if self.isResolvingInProgress(error) {
                             self.haltingService.add(
                                 execution: { [weak self] in
-                                    _ = resultProducer { response in
+                                    _ = resultProducer { response, _ in
                                         self?.processResponse(response: response, parser: parser, completion: completion)
                                     }
                                 },
-                                cancellation: { completion(Response.failure(.network(.canceled))) })
+                                cancellation: {
+                                    completion(Response.failure(.network(.canceled)))
+                                })
                         } else {
                             self.processResponse(response: response, parser: parser, completion: completion)
                         }
@@ -199,7 +215,6 @@ open class APIClient: NSObject, NetworkClient {
             return Response.failure(result.error!)
         }
         
-        self.didReceive(response)
         switch response.httpResponse.statusCode {
         case 200..<300: return Response.success(response)
         // once we reach unsuccessful header
@@ -257,8 +272,8 @@ private extension APIClient {
         return plugins.reduce(result) { $1.process($0) }
     }
     
-    func resolve(error: Error, onResolved: @escaping (Bool) -> Void) {
-        if let plugin = plugins.first(where: { $0.canResolve(error) }) {
+    func resolve(error: Error, request: APIRequest, onResolved: @escaping (Bool) -> Void) {
+        if let plugin = plugins.first(where: { $0.canResolve(error, request) }) {
             plugin.resolve(error, onResolved: onResolved)
         } else {
             onResolved(false)
@@ -277,7 +292,7 @@ private extension APIClient {
         }
     }
     
-    func didReceive(_ response: HTTPResponse) {
+    func didReceive(_ response: HTTPResponse?) {
         plugins.forEach { $0.didReceive(response: response) }
     }
     
