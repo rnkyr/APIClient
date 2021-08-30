@@ -84,7 +84,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
             request.cancel()
         }
         if let progressHandler = uploadRequest.progressHandler {
-            request.downloadProgress { (progress: Progress) in
+            request.uploadProgress { (progress: Progress) in
                 progressHandler(progress)
             }
         }
