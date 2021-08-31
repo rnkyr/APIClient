@@ -1,15 +1,14 @@
 Pod::Spec.new do |s|
   s.name         = 'APIClient'
-  s.version      = '3.1'
+  s.version      = '3.1.1'
   s.summary      = 'Extensible network client.'
   s.homepage     = 'https://github.com/rnkyr/APIClient.git'
   s.license      = { type: 'MIT', file: 'License' }
   s.authors      = {
-    'Eugene Andreyev': 'eugene.andreyev@yalantis.com',
-    'Roman Kyrylenko': 'roman.kyrylenko@yalantis.com',
+    'Roman Kyrylenko': 'roma.kyrylenko@gmail.com',
     'Anton Vodolazkyi': 'anton.vodolazky@yalantis.com'
   }
-  s.source       = { git: 'https://github.com/Yalantis/APIClient.git', tag: s.version }
+  s.source       = { git: 'https://github.com/rnkyr/APIClient.git', tag: s.version }
   s.frameworks   = 'Foundation'
   s.ios.deployment_target = '10.0'
   s.default_subspec = 'Alamofire'
