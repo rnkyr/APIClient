@@ -49,7 +49,7 @@ public class RestorationTokenPlugin: PluginType {
     }
     
     public func canResolve(_ error: Error, _ request: APIRequest) -> Bool {
-        guard isAuthorizableRequest(request) else {
+        guard request.isAuthorizableRequest() else {
             return false
         }
         
@@ -58,15 +58,6 @@ public class RestorationTokenPlugin: PluginType {
             return true
         }
         return false
-    }
-    
-    private func isAuthorizableRequest(_ request: APIRequest) -> Bool {
-        let request = (request as? APIRequestProxy)?.origin ?? request
-        guard let authRequest = request as? AuthorizableRequest, authRequest.authorizationRequired else {
-            return false
-        }
-        
-        return true
     }
     
     public func isResolvingInProgress(_ error: Error) -> Bool {
@@ -113,4 +104,16 @@ protocol RestorationTokenPluginDelegate: AnyObject {
     func reachUnauthorizedError()
     func restored()
     func failedToRestore()
+}
+
+extension APIRequest {
+    
+    func isAuthorizableRequest() -> Bool {
+        let request = (self as? APIRequestProxy)?.origin ?? self
+        guard let authRequest = request as? AuthorizableRequest, authRequest.authorizationRequired else {
+            return false
+        }
+        
+        return true
+    }
 }

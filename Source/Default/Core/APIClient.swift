@@ -184,7 +184,7 @@ open class APIClient: NSObject, NetworkClient {
                             self.processResponse(response: response, parser: parser, completion: completion)
                         }
                     } else {
-                        if self.isResolvingInProgress(error) {
+                        if self.isResolvingInProgress(error) && request.isAuthorizableRequest() {
                             self.haltingService.add(
                                 execution: { [weak self] in
                                     _ = resultProducer { response, _ in
