@@ -57,7 +57,7 @@ open class APIClient: NSObject, NetworkClient {
             let request = self.prepare(request: request)
             self.willSend(request: request)
             return self.requestExecutor.execute(request: request, requestModifier: self.modifier(), completion: { response in
-                self.didReceive(response.value)
+                self.didReceive(response.value, for: request)
                 completion(response, request)
             })
         }
@@ -91,7 +91,7 @@ open class APIClient: NSObject, NetworkClient {
             }
             self.willSend(request: request)
             return self.requestExecutor.execute(multipartRequest: request, requestModifier: self.modifier(), completion: { response in
-                self.didReceive(response.value)
+                self.didReceive(response.value, for: request)
                 completion(response, request)
             })
         }
@@ -126,7 +126,7 @@ open class APIClient: NSObject, NetworkClient {
             
             self.willSend(request: request)
             return self.requestExecutor.execute(uploadRequest: request, requestModifier: self.modifier(), completion: { response in
-                self.didReceive(response.value)
+                self.didReceive(response.value, for: request)
                 completion(response, request)
             })
         }
@@ -161,7 +161,7 @@ open class APIClient: NSObject, NetworkClient {
             
             self.willSend(request: request)
             return self.requestExecutor.execute(downloadRequest: request, requestModifier: self.modifier(), destinationPath: request.destinationFilePath, completion: { response in
-                self.didReceive(response.value)
+                self.didReceive(response.value, for: request)
                 completion(response, request)
             })
         }
@@ -292,8 +292,8 @@ private extension APIClient {
         }
     }
     
-    func didReceive(_ response: HTTPResponse?) {
-        plugins.forEach { $0.didReceive(response: response) }
+    func didReceive(_ response: HTTPResponse?, for request: APIRequest) {
+        plugins.forEach { $0.didReceive(response: response, request: request) }
     }
     
     func process(_ response: HTTPResponse) -> Error? {
