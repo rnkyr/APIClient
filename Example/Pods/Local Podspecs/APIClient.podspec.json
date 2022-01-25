@@ -1,6 +1,6 @@
 {
   "name": "APIClient",
-  "version": "3.0.18",
+  "version": "3.1.4",
   "summary": "Extensible network client.",
   "homepage": "https://github.com/rnkyr/APIClient.git",
   "license": {
@@ -8,13 +8,12 @@
     "file": "License"
   },
   "authors": {
-    "Eugene Andreyev": "eugene.andreyev@yalantis.com",
-    "Roman Kyrylenko": "roman.kyrylenko@yalantis.com",
+    "Roman Kyrylenko": "roma.kyrylenko@gmail.com",
     "Anton Vodolazkyi": "anton.vodolazky@yalantis.com"
   },
   "source": {
-    "git": "https://github.com/Yalantis/APIClient.git",
-    "tag": "3.0.18"
+    "git": "https://github.com/rnkyr/APIClient.git",
+    "tag": "3.1.4"
   },
   "frameworks": "Foundation",
   "platforms": {

@@ -4,16 +4,18 @@ import Alamofire
 open class AlamofireRequestExecutor: RequestExecutor {
     
     private let baseURL: URL
+    private let session: Session
     
-    public init(baseURL: URL) {
+    public init(baseURL: URL, session: Session = Session.default) {
         self.baseURL = baseURL
+        self.session = session
     }
     
     open func execute(request: APIRequest, requestModifier: RequestModifier?, completion: @escaping APIResultResponse) -> Cancelable {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: request)
         
-        let afRequest = AF.request(
+        let afRequest = session.request(
             requestPath,
             method: request.afMethod,
             parameters: request.parameters,
@@ -41,7 +43,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: multipartRequest)
         
-        let request = AF.upload(
+        let request = session.upload(
             multipartFormData: multipartRequest.multipartFormData,
             to: requestPath,
             method: multipartRequest.afMethod,
@@ -73,7 +75,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: uploadRequest)
 
-        let request = AF.upload(
+        let request = session.upload(
             uploadRequest.fileURL,
             to: requestPath,
             method: uploadRequest.afMethod,
@@ -105,7 +107,7 @@ open class AlamofireRequestExecutor: RequestExecutor {
         let cancellationSource = CancellationTokenSource()
         let requestPath = path(for: downloadRequest)
         
-        let request = AF.download(
+        let request = session.download(
             requestPath,
             method: downloadRequest.afMethod,
             parameters: downloadRequest.parameters,
