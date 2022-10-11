@@ -53,7 +53,7 @@ open class MultipartAPIRequestProxy: APIRequestProxy, MultipartAPIRequest {
     
     public override init(request: APIRequest) {
         multipartFormData = (request as? MultipartAPIRequest)?.multipartFormData ?? { _ in }
-        progressHandler = (request as? MultipartAPIRequestProxy)?.progressHandler
+        progressHandler = (request as? MultipartAPIRequest)?.progressHandler
         
         super.init(request: request)
     }
@@ -79,7 +79,7 @@ open class DownloadAPIRequestProxy: APIRequestProxy, DownloadAPIRequest {
     
     public override init(request: APIRequest) {
         destinationFilePath = (request as? DownloadAPIRequest)?.destinationFilePath
-        progressHandler = (request as? DownloadAPIRequestProxy)?.progressHandler
+        progressHandler = (request as? DownloadAPIRequest)?.progressHandler
         
         super.init(request: request)
     }
