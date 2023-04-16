@@ -14,12 +14,12 @@ Pod::Spec.new do |s|
   s.default_subspec = 'Alamofire'
 
   s.subspec 'Core' do |ss|
-    ss.source_files = 'Source/Default/**/*.swift'
+    ss.source_files = 'Sources/APIClient/**/*.swift'
   end
 
   s.subspec 'Alamofire' do |ss|
     ss.dependency 'APIClient/Core'
     ss.dependency 'Alamofire', '5.2.1'
-    ss.source_files = 'Source/Alamofire/*'
+    ss.source_files = 'Sources/Alamofire/*'
   end
 end
