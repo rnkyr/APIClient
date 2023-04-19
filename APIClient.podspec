@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'APIClient'
-  s.version      = '3.1.7'
+  s.version      = '3.1.9'
   s.summary      = 'Extensible network client.'
   s.homepage     = 'https://github.com/rnkyr/APIClient.git'
   s.license      = { type: 'MIT', file: 'License' }
@@ -20,6 +20,6 @@ Pod::Spec.new do |s|
   s.subspec 'Alamofire' do |ss|
     ss.dependency 'APIClient/Core'
     ss.dependency 'Alamofire', '5.2.1'
-    ss.source_files = 'Sources/Alamofire/*'
+    ss.source_files = 'Sources/APIClientAlamofire/*'
   end
 end
