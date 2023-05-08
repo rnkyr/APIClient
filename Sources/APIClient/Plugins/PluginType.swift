@@ -11,6 +11,8 @@ import Foundation
 /// Describes functions of the plugin for APIClient
 public protocol PluginType {
 
+    @available(*, deprecated, message: "Use prepare(_:result:) instead")
+    func prepare(_ request: APIRequest)
     /// Called to modify a request before sending
     func prepare(_ request: APIRequest, result: @escaping (APIRequest) -> Void)
     
@@ -41,6 +43,9 @@ public protocol PluginType {
 }
 
 public extension PluginType {
+    
+    func prepare(_ request: APIRequest) {
+    }
     
     func prepare(_ request: APIRequest, result: @escaping (APIRequest) -> Void) {
         result(request)
