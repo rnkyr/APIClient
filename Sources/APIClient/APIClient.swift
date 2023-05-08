@@ -342,14 +342,17 @@ private extension APIClient {
     }
     
     func prepare(request: APIRequest, completion: @escaping (APIRequest) -> Void) {
-        var plugins = plugins
-        func recurse(_ request: APIRequest, next: @escaping (APIRequest) -> Void) {
+        func iterate(_ plugins: [PluginType], _ request: APIRequest, completion: @escaping (APIRequest) -> Void) {
+            if plugins.isEmpty {
+                completion(request)
+            }
+            var plugins = plugins
             let plugin = plugins.removeFirst()
             plugin.prepare(request) { result in
-                next(result)
+                iterate(plugins, result, completion: completion)
             }
         }
-        recurse(request, next: completion)
+        iterate(plugins, request, completion: completion)
     }
     
     func decorate(error: Error) -> Error {
