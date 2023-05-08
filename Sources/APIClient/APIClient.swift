@@ -345,6 +345,7 @@ private extension APIClient {
         func iterate(_ plugins: [PluginType], _ request: APIRequest, completion: @escaping (APIRequest) -> Void) {
             if plugins.isEmpty {
                 completion(request)
+                return
             }
             var plugins = plugins
             let plugin = plugins.removeFirst()
