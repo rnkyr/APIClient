@@ -53,9 +53,10 @@ public final class AuthorizationPlugin: PluginType {
         return false
     }
     
-    public func prepare(_ request: APIRequest) -> APIRequest {
+    public func prepare(_ request: APIRequest, result: @escaping (APIRequest) -> Void) {
         guard let authorizableRequest = request as? AuthorizableRequest, authorizableRequest.authorizationRequired else {
-            return request
+            result(request)
+            return
         }
         
         var headers = request.headers ?? [:]
@@ -73,7 +74,7 @@ public final class AuthorizationPlugin: PluginType {
         let proxy = request.proxy()
         proxy.headers = headers
         
-        return proxy
+        result(proxy)
     }
 }
 

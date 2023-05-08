@@ -52,5 +52,4 @@ struct TestPlugin: PluginType {
     func prepare(_ request: APIRequest) -> APIRequest {
         return GetUserRequest()
     }
-    
 }

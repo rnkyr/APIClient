@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'APIClient'
-  s.version      = '3.1.9'
+  s.version      = '3.2.0'
   s.summary      = 'Extensible network client.'
   s.homepage     = 'https://github.com/rnkyr/APIClient.git'
   s.license      = { type: 'MIT', file: 'License' }
@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   }
   s.source       = { git: 'https://github.com/rnkyr/APIClient.git', tag: s.version }
   s.frameworks   = 'Foundation'
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '13.0'
   s.default_subspec = 'Alamofire'
 
   s.subspec 'Core' do |ss|

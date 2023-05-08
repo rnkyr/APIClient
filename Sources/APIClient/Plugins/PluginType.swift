@@ -12,7 +12,7 @@ import Foundation
 public protocol PluginType {
 
     /// Called to modify a request before sending
-    func prepare(_ request: APIRequest) -> APIRequest
+    func prepare(_ request: APIRequest, result: @escaping (APIRequest) -> Void)
     
     /// Called immediately before a request is sent over the network.
     func willSend(_ request: APIRequest)
@@ -42,8 +42,8 @@ public protocol PluginType {
 
 public extension PluginType {
     
-    func prepare(_ request: APIRequest) -> APIRequest {
-        return request
+    func prepare(_ request: APIRequest, result: @escaping (APIRequest) -> Void) {
+        result(request)
     }
     
     func willSend(_ request: APIRequest) {

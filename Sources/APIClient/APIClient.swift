@@ -54,12 +54,19 @@ open class APIClient: NSObject, NetworkClient {
         }
         
         let resultProducer: ResultProducer = { completion in
-            let request = self.prepare(request: request)
-            self.willSend(request: request)
-            return self.requestExecutor.execute(request: request, requestModifier: self.modifier(), completion: { response in
-                self.didReceive(response.value, for: request)
-                completion(response, request)
-            })
+            let cancelation = CancellationTokenSource()
+            self.prepare(request: request) { request in
+                self.willSend(request: request)
+                let requestCancelation = self.requestExecutor.execute(request: request, requestModifier: self.modifier(), completion: { response in
+                    self.didReceive(response.value, for: request)
+                    completion(response, request)
+                })
+                cancelation.token.register {
+                    requestCancelation.cancel()
+                }
+            }
+            
+            return cancelation
         }
         
         return _execute(resultProducer, parser: parser, completion: completion)
@@ -86,14 +93,22 @@ open class APIClient: NSObject, NetworkClient {
         }
         
         let resultProducer: ResultProducer = { completion in
-            guard let request = self.prepare(request: request) as? MultipartAPIRequest else {
-                fatalError("Unexpected request type. Expected \(MultipartAPIRequest.self)")
+            let cancelation = CancellationTokenSource()
+            self.prepare(request: request) { request in
+                guard let request = request as? MultipartAPIRequest else {
+                    fatalError("Unexpected request type. Expected \(MultipartAPIRequest.self)")
+                }
+                self.willSend(request: request)
+                let requestCancelation = self.requestExecutor.execute(multipartRequest: request, requestModifier: self.modifier(), completion: { response in
+                    self.didReceive(response.value, for: request)
+                    completion(response, request)
+                })
+                cancelation.token.register {
+                    requestCancelation.cancel()
+                }
             }
-            self.willSend(request: request)
-            return self.requestExecutor.execute(multipartRequest: request, requestModifier: self.modifier(), completion: { response in
-                self.didReceive(response.value, for: request)
-                completion(response, request)
-            })
+            
+            return cancelation
         }
         
         return _execute(resultProducer, parser: parser, completion: completion)
@@ -120,15 +135,23 @@ open class APIClient: NSObject, NetworkClient {
         }
         
         let resultProducer: ResultProducer = { completion in
-            guard let request = self.prepare(request: request) as? UploadAPIRequest else {
-                fatalError("Unexpected request type. Expected \(UploadAPIRequest.self)")
+            let cancelation = CancellationTokenSource()
+            self.prepare(request: request) { request in
+                guard let request = request as? UploadAPIRequest else {
+                    fatalError("Unexpected request type. Expected \(UploadAPIRequest.self)")
+                }
+                
+                self.willSend(request: request)
+                let requestCancelation = self.requestExecutor.execute(uploadRequest: request, requestModifier: self.modifier(), completion: { response in
+                    self.didReceive(response.value, for: request)
+                    completion(response, request)
+                })
+                cancelation.token.register {
+                    requestCancelation.cancel()
+                }
             }
             
-            self.willSend(request: request)
-            return self.requestExecutor.execute(uploadRequest: request, requestModifier: self.modifier(), completion: { response in
-                self.didReceive(response.value, for: request)
-                completion(response, request)
-            })
+            return cancelation
         }
         
         return _execute(resultProducer, parser: parser, completion: completion)
@@ -155,15 +178,23 @@ open class APIClient: NSObject, NetworkClient {
         }
         
         let resultProducer: ResultProducer = { completion in
-            guard let request = self.prepare(request: request) as? DownloadAPIRequest else {
-                fatalError("Unexpected request type. Expected \(DownloadAPIRequest.self)")
+            let cancelation = CancellationTokenSource()
+            self.prepare(request: request) { request in
+                guard let request = request as? DownloadAPIRequest else {
+                    fatalError("Unexpected request type. Expected \(DownloadAPIRequest.self)")
+                }
+                
+                self.willSend(request: request)
+                let requestCancelation = self.requestExecutor.execute(downloadRequest: request, requestModifier: self.modifier(), destinationPath: request.destinationFilePath, completion: { response in
+                    self.didReceive(response.value, for: request)
+                    completion(response, request)
+                })
+                cancelation.token.register {
+                    requestCancelation.cancel()
+                }
             }
             
-            self.willSend(request: request)
-            return self.requestExecutor.execute(downloadRequest: request, requestModifier: self.modifier(), destinationPath: request.destinationFilePath, completion: { response in
-                self.didReceive(response.value, for: request)
-                completion(response, request)
-            })
+            return cancelation
         }
         
         return _execute(resultProducer, parser: parser, completion: completion)
@@ -310,8 +341,15 @@ private extension APIClient {
         plugins.forEach { $0.willSend(request) }
     }
     
-    func prepare(request: APIRequest) -> APIRequest {
-        return plugins.reduce(request) { $1.prepare($0) }
+    func prepare(request: APIRequest, completion: @escaping (APIRequest) -> Void) {
+        var plugins = plugins
+        func recurse(_ request: APIRequest, next: @escaping (APIRequest) -> Void) {
+            let plugin = plugins.removeFirst()
+            plugin.prepare(request) { result in
+                next(result)
+            }
+        }
+        recurse(request, next: completion)
     }
     
     func decorate(error: Error) -> Error {

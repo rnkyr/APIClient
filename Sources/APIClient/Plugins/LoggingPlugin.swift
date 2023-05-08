@@ -24,10 +24,10 @@ public final class LoggingPlugin: PluginType {
         }
     }
     
-    public func prepare(_ request: APIRequest) -> APIRequest {
+    public func prepare(_ request: APIRequest, result: @escaping (APIRequest) -> Void) {
         outputClosure("Preparing request - \(describe(request))")
         
-        return request
+        result(request)
     }
     
     public func willSend(_ request: APIRequest) {
