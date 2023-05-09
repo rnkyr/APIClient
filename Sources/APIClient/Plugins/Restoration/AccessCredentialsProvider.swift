@@ -19,5 +19,5 @@ public protocol AccessCredentialsProvider: AnyObject {
     func commitCredentialsUpdate(_ update: (AccessCredentialsProvider) -> Void)
     
     /// Called in case of not successful update
-    func invalidate()
+    func invalidate(error: RestorationTokenPluginError)
 }

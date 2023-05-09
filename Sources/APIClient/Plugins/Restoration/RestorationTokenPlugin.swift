@@ -13,6 +13,13 @@ public protocol TokenType {
     var exchangeToken: String { get }
 }
 
+public enum RestorationTokenPluginError: Error {
+    
+    case restorationResult(NetworkClientError)
+    case exchangeTokenMissing
+    case restorationResultProviderMissing
+}
+
 /// The plugin to restore the token can be used as the requestor's credential provider
 public class RestorationTokenPlugin: PluginType {
     
@@ -72,7 +79,9 @@ public class RestorationTokenPlugin: PluginType {
         }
 
         guard credentialProvider.exchangeToken != nil && restorationResultProvider != nil else {
-            credentialProvider.invalidate()
+            credentialProvider.invalidate(
+                error: credentialProvider.exchangeToken == nil ? .exchangeTokenMissing : .restorationResultProviderMissing
+            )
             delegate?.failedToRestore()
             onResolved(false)
             return
@@ -82,18 +91,19 @@ public class RestorationTokenPlugin: PluginType {
         restorationResultProvider? { [weak self] result in
             self?.inProgress = false
 
-            guard let value = result.value else {
-                self?.credentialProvider.invalidate()
+            switch result {
+            case .success(let value):
+                self?.credentialProvider.commitCredentialsUpdate { provider in
+                    provider.accessToken = value.accessToken
+                    provider.exchangeToken = value.exchangeToken
+                    self?.delegate?.restored()
+                    onResolved(true)
+                }
+                
+            case .failure(let error):
+                self?.credentialProvider.invalidate(error: .restorationResult(error))
                 self?.delegate?.failedToRestore()
                 onResolved(false)
-                return
-            }
-
-            self?.credentialProvider.commitCredentialsUpdate { provider in
-                provider.accessToken = value.accessToken
-                provider.exchangeToken = value.exchangeToken
-                self?.delegate?.restored()
-                onResolved(true)
             }
         }
     }
