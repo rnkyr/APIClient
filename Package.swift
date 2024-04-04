@@ -10,7 +10,7 @@ let package = Package(
         .library(name: "APIClientAlamofire", targets: ["APIClientAlamofire"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire", exact: "5.2.1")
+        .package(url: "https://github.com/Alamofire/Alamofire", exact: "5.9.1")
     ],
     targets: [
         .target(name: "APIClient"),
