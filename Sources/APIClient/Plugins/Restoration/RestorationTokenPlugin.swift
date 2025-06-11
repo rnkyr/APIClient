@@ -25,12 +25,18 @@ public class RestorationTokenPlugin: PluginType {
     
     /// callback that provides result of request made to restore the session; captured
     public var restorationResultProvider: ((@escaping (Response<TokenType>) -> Void) -> Void)?
+    public private(set) var isInProgress = IsInProgressActor()
     
     let shouldHaltRequestsTillResolve: Bool
     weak var delegate: RestorationTokenPluginDelegate?
     
-    public private(set) var inProgress = false
-    private var onTokenRestored: [((Bool) -> Void)] = []
+    private var inProgress = false {
+        didSet {
+            Task {
+                await self.isInProgress.setInProgress(inProgress)
+            }
+        }
+    }
     private let credentialProvider: AccessCredentialsProvider
     private let authErrorResolving: AuthErrorResolving
 
@@ -56,15 +62,6 @@ public class RestorationTokenPlugin: PluginType {
         }
     }
     
-    public func onRestored(_ callback: @escaping (Bool) -> Void) {
-        onTokenRestored.append(callback)
-    }
-    
-    private func triggerOnRestoredCallbacks(_ success: Bool) {
-        onTokenRestored.forEach { $0(success) }
-        onTokenRestored.removeAll()
-    }
-    
     public func canResolve(_ error: Error, _ request: APIRequest) -> Bool {
         guard request.isAuthorizableRequest() else {
             return false
@@ -84,7 +81,6 @@ public class RestorationTokenPlugin: PluginType {
     public func resolve(_ error: Error, onResolved: @escaping (Bool) -> Void) {
         guard authErrorResolving(error) else {
             delegate?.failedToRestore()
-            triggerOnRestoredCallbacks(false)
             onResolved(false)
             return
         }
@@ -94,29 +90,26 @@ public class RestorationTokenPlugin: PluginType {
                 error: credentialProvider.exchangeToken == nil ? .exchangeTokenMissing : .restorationResultProviderMissing
             )
             delegate?.failedToRestore()
-            triggerOnRestoredCallbacks(false)
             onResolved(false)
             return
         }
  
         inProgress = true
         restorationResultProvider? { [weak self] result in
-            self?.inProgress = false
-
             switch result {
             case .success(let value):
                 self?.credentialProvider.commitCredentialsUpdate { provider in
                     provider.accessToken = value.accessToken
                     provider.exchangeToken = value.exchangeToken
+                    self?.inProgress = false
                     self?.delegate?.restored()
-                    self?.triggerOnRestoredCallbacks(true)
                     onResolved(true)
                 }
                 
             case .failure(let error):
+                self?.inProgress = false
                 self?.credentialProvider.invalidate(error: .restorationResult(error))
                 self?.delegate?.failedToRestore()
-                self?.triggerOnRestoredCallbacks(false)
                 onResolved(false)
             }
         }
@@ -139,5 +132,18 @@ public extension APIRequest {
         }
         
         return true
+    }
+}
+
+public actor IsInProgressActor {
+    
+    private var _inProgress: Bool = false
+    
+    public var inProgress: Bool {
+        get { _inProgress }
+    }
+    
+    public func setInProgress(_ value: Bool) {
+        _inProgress = value
     }
 }
