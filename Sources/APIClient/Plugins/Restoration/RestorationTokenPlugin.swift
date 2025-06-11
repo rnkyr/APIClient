@@ -29,7 +29,8 @@ public class RestorationTokenPlugin: PluginType {
     let shouldHaltRequestsTillResolve: Bool
     weak var delegate: RestorationTokenPluginDelegate?
     
-    private var inProgress = false
+    public private(set) var inProgress = false
+    private var onTokenRestored: [((Bool) -> Void)] = []
     private let credentialProvider: AccessCredentialsProvider
     private let authErrorResolving: AuthErrorResolving
 
@@ -55,6 +56,15 @@ public class RestorationTokenPlugin: PluginType {
         }
     }
     
+    public func onRestored(_ callback: @escaping (Bool) -> Void) {
+        onTokenRestored.append(callback)
+    }
+    
+    private func triggerOnRestoredCallbacks(_ success: Bool) {
+        onTokenRestored.forEach { $0(success) }
+        onTokenRestored.removeAll()
+    }
+    
     public func canResolve(_ error: Error, _ request: APIRequest) -> Bool {
         guard request.isAuthorizableRequest() else {
             return false
@@ -74,6 +84,7 @@ public class RestorationTokenPlugin: PluginType {
     public func resolve(_ error: Error, onResolved: @escaping (Bool) -> Void) {
         guard authErrorResolving(error) else {
             delegate?.failedToRestore()
+            triggerOnRestoredCallbacks(false)
             onResolved(false)
             return
         }
@@ -83,6 +94,7 @@ public class RestorationTokenPlugin: PluginType {
                 error: credentialProvider.exchangeToken == nil ? .exchangeTokenMissing : .restorationResultProviderMissing
             )
             delegate?.failedToRestore()
+            triggerOnRestoredCallbacks(false)
             onResolved(false)
             return
         }
@@ -97,12 +109,14 @@ public class RestorationTokenPlugin: PluginType {
                     provider.accessToken = value.accessToken
                     provider.exchangeToken = value.exchangeToken
                     self?.delegate?.restored()
+                    self?.triggerOnRestoredCallbacks(true)
                     onResolved(true)
                 }
                 
             case .failure(let error):
                 self?.credentialProvider.invalidate(error: .restorationResult(error))
                 self?.delegate?.failedToRestore()
+                self?.triggerOnRestoredCallbacks(false)
                 onResolved(false)
             }
         }
@@ -116,7 +130,7 @@ protocol RestorationTokenPluginDelegate: AnyObject {
     func failedToRestore()
 }
 
-extension APIRequest {
+public extension APIRequest {
     
     func isAuthorizableRequest() -> Bool {
         let request = (self as? APIRequestProxy)?.origin ?? self
